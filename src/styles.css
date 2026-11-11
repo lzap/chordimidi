@@ -68,13 +68,13 @@ h2 { margin-bottom: 0; font-size: clamp(24px, 3vw, 31px); letter-spacing: -.035e
 .chord-detail { color: #68777b; font-size: 13px; line-height: 1.5; }
 .chord-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: auto; }
 .pedal-badge { color: #765b23; background: #fbefcf; }
-.triad-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-.triad-card { display: block; width: 100%; padding: 16px; color: inherit; background: #fff; border: 1px solid #dfe4e0; border-radius: 10px; text-align: left; transition: border-color .15s, transform .15s; }
+.triad-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
+.triad-card { display: block; min-width: 0; width: 100%; padding: 12px; color: inherit; background: #fff; border: 1px solid #dfe4e0; border-radius: 10px; text-align: left; transition: border-color .15s, transform .15s; }
 .triad-card:hover { border-color: #69ad8d; transform: translateY(-2px); }
 .triad-card.is-previewing { border-color: #208368; box-shadow: 0 0 0 1px #208368; }
 .triad-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 5px; }
 .triad-degree { color: #208368; font-size: 12px; font-weight: 800; }
-.triad-name { font-size: 20px; font-weight: 750; letter-spacing: -.035em; }
+.triad-name { font-size: 18px; font-weight: 750; letter-spacing: -.035em; }
 .triad-notes, .form-notes { color: #7d898a; font-size: 11px; }
 .triad-notes { margin-bottom: 15px; }
 .piano { position: relative; height: 82px; background: #fff; border: 1px solid #a9b4b3; border-radius: 3px; overflow: hidden; }
@@ -93,8 +93,11 @@ h2 { margin-bottom: 0; font-size: clamp(24px, 3vw, 31px); letter-spacing: -.035e
 .piano-range { display: flex; justify-content: space-between; margin-top: 7px; color: #a0abab; font-size: 10px; }
 .site-footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 70px; padding: 24px 0 32px; color: #83908e; border-top: 1px solid #dfe4e0; font-size: 12px; }
 
+@media (max-width: 1050px) {
+  .triad-grid { grid-template-columns: repeat(7, 170px); overflow-x: auto; padding-bottom: 8px; }
+}
+
 @media (max-width: 900px) {
-  .triad-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .live-layout { grid-template-columns: 1fr; }
   .chord-panel { min-height: 235px; }
   .chord-name { margin-top: 18px; }
@@ -110,15 +113,8 @@ h2 { margin-bottom: 0; font-size: clamp(24px, 3vw, 31px); letter-spacing: -.035e
   .section-note { text-align: left; }
   .staff-panel { padding: 13px 10px 12px; }
   .staff-wrap { min-height: 180px; }
-  .triad-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .triad-card { padding: 12px; }
-  .triad-name { font-size: 18px; }
   .piano { height: 68px; }
   .inversion-grid { grid-template-columns: 1fr; }
   .form-card .piano { height: 110px; }
   .site-footer { flex-direction: column; }
-}
-
-@media (max-width: 380px) {
-  .triad-grid { grid-template-columns: 1fr; }
 }
