@@ -27,6 +27,10 @@
           <label for="key-select">Key</label>
           <select id="key-select"></select>
         </div>
+        <div class="control-group detect-control">
+          <span class="control-label">Key detection</span>
+          <button id="detect-key-button" class="button button-secondary" type="button" aria-pressed="false">Detect key</button>
+        </div>
         <div class="control-group split-control">
           <span class="control-label">Split</span>
           <button id="split-button" class="button button-secondary" type="button" aria-pressed="false">Learn split</button>
@@ -38,6 +42,8 @@
         <button id="connect-button" class="button button-primary" type="button">Connect MIDI</button>
         <div class="status-row">
           <div class="connection-status" id="midi-status" role="status">Ready to connect</div>
+          <span class="analysis-status" id="key-detection-status" role="status">Key detection off</span>
+          <button id="use-detected-key" class="text-button" type="button" hidden>Use detected key</button>
           <span class="analysis-status" id="split-status" role="status">Split off</span>
           <button id="clear-split" class="text-button" type="button" hidden>Clear split</button>
         </div>

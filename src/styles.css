@@ -25,6 +25,7 @@ h2, p { margin-top: 0; }
 .control-group { display: flex; flex-direction: column; gap: 7px; }
 .control-group label, .control-label { color: #526169; font-size: 12px; font-weight: 750; }
 .key-control { width: 190px; }
+.detect-control { min-width: 116px; }
 .split-control { min-width: 112px; }
 .input-control { flex: 1; min-width: 210px; }
 select { width: 100%; height: 42px; padding: 0 12px; color: #202b32; background: #fff; border: 1px solid #cbd5d0; border-radius: 7px; }
@@ -116,8 +117,9 @@ h2 { margin-bottom: 0; font-size: clamp(24px, 3vw, 31px); letter-spacing: -.035e
   .page-shell { width: min(100% - 28px, 1180px); }
   .site-header { padding: 18px 0; }
   .controls { align-items: stretch; }
-  .key-control, .input-control, .controls .button { width: 100%; }
-  .split-control { width: 100%; }
+  .key-control, .input-control, .controls > .button { width: 100%; }
+  .detect-control, .split-control { width: calc(50% - 8px); min-width: 0; }
+  .detect-control .button, .split-control .button { width: 100%; padding-inline: 8px; }
   .section { margin-top: 32px; }
   .section-heading { align-items: start; flex-direction: column; gap: 8px; }
   .section-note { text-align: left; }

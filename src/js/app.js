@@ -1,6 +1,6 @@
 import { KEYS, QUALITIES, getKey, recognizeChord, recommendationsForKey, spellMidiNote, triadsForKey, voicingForChord } from './theory.js';
 import { MidiNoteTracker } from './midi-state.js';
-import { chordInputNotes, noteOnMidi } from './analysis.js';
+import { chordInputNotes, guessKeys, noteOnMidi } from './analysis.js';
 import { staffSvg } from './staff.js';
 import { createPiano } from './piano.js';
 
@@ -9,6 +9,9 @@ const elements = {
   inputSelect: document.querySelector('#midi-input-select'),
   connectButton: document.querySelector('#connect-button'),
   midiStatus: document.querySelector('#midi-status'),
+  detectKeyButton: document.querySelector('#detect-key-button'),
+  keyDetectionStatus: document.querySelector('#key-detection-status'),
+  useDetectedKey: document.querySelector('#use-detected-key'),
   splitButton: document.querySelector('#split-button'),
   splitStatus: document.querySelector('#split-status'),
   clearSplit: document.querySelector('#clear-split'),
@@ -37,6 +40,9 @@ let preview = null;
 let key = getKey(readSavedKey());
 let splitNote = readSavedSplit();
 let splitArmed = false;
+let detectingKey = false;
+let keySamples = [];
+let keySuggestions = [];
 
 function readSavedKey() {
   try { return localStorage.getItem('chordimidi-key'); }
@@ -77,6 +83,27 @@ function renderSplitStatus() {
       ? `Chords use notes below ${boundary}` : 'Split off · all notes count toward chords';
   }
   elements.clearSplit.hidden = splitNote === null;
+}
+
+function renderKeyDetectionStatus() {
+  elements.detectKeyButton.setAttribute('aria-pressed', String(detectingKey));
+  elements.detectKeyButton.textContent = detectingKey ? 'Stop detecting' : 'Detect key';
+  const [first, second] = keySuggestions;
+  if (first) {
+    const lead = detectingKey
+      ? keySamples.length >= 12 && new Set(keySamples.map((note) => note % 12)).size >= 5
+        ? 'Key guess' : 'Early guess'
+      : 'Last guess';
+    elements.keyDetectionStatus.textContent = `${lead}: ${first.label} · also ${second.label}`;
+  } else if (detectingKey) {
+    elements.keyDetectionStatus.textContent = selectedInput
+      ? `Listening for key · ${keySamples.length} ${keySamples.length === 1 ? 'note' : 'notes'} played`
+      : 'Connect MIDI, then play notes to detect key';
+  } else {
+    elements.keyDetectionStatus.textContent = 'Key detection off';
+  }
+  elements.useDetectedKey.hidden = !first;
+  if (first) elements.useDetectedKey.textContent = `Use ${first.label}`;
 }
 
 function setStatus(message, kind = '') {
@@ -266,15 +293,24 @@ function selectInput(input) {
   }
   selectedInput = input;
   preview = null;
+  keySamples = [];
+  keySuggestions = [];
   if (selectedInput) {
     selectedInput.onmidimessage = (event) => {
       preview = null;
       const played = noteOnMidi(event.data);
+      const learnedSplit = splitArmed && played !== null;
       if (splitArmed && played !== null) {
         splitNote = played;
         splitArmed = false;
         saveSplit();
         renderSplitStatus();
+      }
+      if (detectingKey && played !== null && !learnedSplit) {
+        keySamples.push(played);
+        keySamples = keySamples.slice(-64);
+        keySuggestions = guessKeys(keySamples);
+        renderKeyDetectionStatus();
       }
       if (tracker.receive(selectedInput.id, event.data)) {
         renderLive();
@@ -286,6 +322,7 @@ function selectInput(input) {
     setStatus(access ? 'No MIDI input found. Connect a device to continue.' : 'Ready to connect');
   }
   renderSplitStatus();
+  renderKeyDetectionStatus();
   renderLive();
   renderTriads();
 }
@@ -336,6 +373,10 @@ async function connectMidi() {
 }
 
 elements.keySelect.addEventListener('change', () => {
+  detectingKey = false;
+  keySamples = [];
+  keySuggestions = [];
+  renderKeyDetectionStatus();
   key = getKey(elements.keySelect.value);
   saveKey(key.id);
   preview = null;
@@ -347,6 +388,28 @@ elements.inputSelect.addEventListener('change', () => {
   selectInput(access.inputs.get(elements.inputSelect.value) || null);
 });
 elements.connectButton.addEventListener('click', connectMidi);
+elements.detectKeyButton.addEventListener('click', () => {
+  detectingKey = !detectingKey;
+  if (detectingKey) {
+    keySamples = [];
+    keySuggestions = [];
+  }
+  renderKeyDetectionStatus();
+});
+elements.useDetectedKey.addEventListener('click', () => {
+  if (!keySuggestions.length) return;
+  key = keySuggestions[0];
+  elements.keySelect.value = key.id;
+  saveKey(key.id);
+  detectingKey = false;
+  keySamples = [];
+  keySuggestions = [];
+  preview = null;
+  renderKeyDetectionStatus();
+  renderSplitStatus();
+  renderTriads();
+  renderLive();
+});
 elements.splitButton.addEventListener('click', () => {
   splitArmed = !splitArmed;
   renderSplitStatus();
@@ -365,6 +428,7 @@ elements.clearPreview.addEventListener('click', () => {
 });
 
 renderKeyOptions();
+renderKeyDetectionStatus();
 renderSplitStatus();
 renderTriads();
 renderLive();

@@ -14,8 +14,9 @@ A static Web MIDI page for seeing the notes you play, recognizing chords, and ex
 - A detected perfect fifth or octave shows three beginner left-hand shapes: root + fifth, root + octave, and root + fifth + octave.
 - MIDI input selection and device hot-plug handling.
 - Learn a split key from the next MIDI note. Chord recognition then uses only notes below it, while the staff still shows everything. Clicked chord previews ignore the split.
+- Arm Detect key to get an approximate key suggestion from recent played notes across the keyboard. Relative keys can sound alike; choose **Use** to apply a suggestion. The split affects chord recognition, not key detection.
 
-The site uses browser-native APIs and has no third-party packages or runtime services. MIDI data stays in the browser. It does not play audio or record note history.
+The site uses browser-native APIs and has no third-party packages or runtime services. MIDI data stays in the browser. It does not play audio or store note history; key detection keeps up to 64 recent note-on events in memory while armed.
 
 Chord names are chosen by the bass note, then the selected key, when the same pitches fit more than one chord (for example, C6 and Am7). Recognition requires every chord tone, so incomplete jazz voicings and ninth, eleventh, or thirteenth chords are outside the current scope.
 
