@@ -6,6 +6,8 @@ const SHARP_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#',
 const FLAT_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 export const QUALITIES = {
+  power: { intervals: [0, 7], suffix: '5', label: 'Perfect fifth' },
+  octave: { intervals: [0, 12], suffix: ' octave', label: 'Octave pair' },
   major: { intervals: [0, 4, 7], suffix: '', label: 'Major triad' },
   minor: { intervals: [0, 3, 7], suffix: 'm', label: 'Minor triad' },
   diminished: { intervals: [0, 3, 6], suffix: '°', label: 'Diminished triad' },
@@ -115,18 +117,27 @@ export function spellMidiNote(midi, key) {
 }
 
 function samePitchClasses(notes, intervals, rootPc) {
-  const target = intervals.map((interval) => (rootPc + interval) % 12);
-  return notes.size === target.length && target.every((pc) => notes.has(pc));
+  const target = new Set(intervals.map((interval) => (rootPc + interval) % 12));
+  return target.size === intervals.length && notes.size === target.size &&
+    [...target].every((pc) => notes.has(pc));
 }
 
 export function recognizeChord(midiNotes, key) {
   const notes = [...new Set(midiNotes)].sort((a, b) => a - b);
   const pcs = new Set(notes.map((note) => note % 12));
-  if (pcs.size !== 3 && pcs.size !== 4) return null;
+  if (!notes.length || pcs.size > 4) return null;
 
   const bassPc = notes[0] % 12;
   const scale = scaleForKey(key);
   const inKey = [...pcs].every((pc) => scale.some((note) => note.pc === pc));
+  if (pcs.size === 1) {
+    if (notes.length !== 2 || notes[1] - notes[0] !== 12) return null;
+    const rootName = nameForPitchClass(bassPc, key);
+    const name = chordName(rootName, 'octave');
+    return { rootPc: bassPc, rootName, bassPc, bassName: rootName,
+      quality: 'octave', intervals: QUALITIES.octave.intervals, inKey,
+      degree: null, name, displayName: name };
+  }
   const diatonicTriads = triadsForKey(key);
   const diatonicSevenths = scale.map((root, index) => ({
     rootPc: root.pc,
@@ -159,6 +170,9 @@ export function recognizeChord(midiNotes, key) {
   const rootName = chosen.diatonic?.rootName || nameForPitchClass(chosen.rootPc, key);
   const bassName = nameForPitchClass(bassPc, key);
   const name = chordName(rootName, chosen.quality);
+  const pattern = chosen.quality === 'power' && notes.length === 3 &&
+    notes[1] - notes[0] === 7 && notes[2] - notes[0] === 12
+    ? 'Root + fifth + octave' : null;
   return {
     ...chosen,
     rootName,
@@ -167,6 +181,7 @@ export function recognizeChord(midiNotes, key) {
     name,
     displayName: bassPc === chosen.rootPc ? name : `${name}/${bassName.replace('b', '♭').replace('#', '♯')}`,
     degree: chosen.diatonic?.degree || null,
+    pattern,
   };
 }
 

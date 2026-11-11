@@ -125,22 +125,38 @@ function renderNoteList(notes) {
 
 function renderInversions(chord) {
   elements.inversionGrid.replaceChildren();
-  const count = chord?.intervals.length || 3;
+  const isLeftHand = chord?.quality === 'power' || chord?.quality === 'octave';
+  const root = isLeftHand ? 48 + chord.rootPc : null;
+  const leftHandForms = isLeftHand ? [
+    { title: 'Root + fifth', notes: [root, root + 7] },
+    { title: 'Root + octave', notes: [root, root + 12] },
+    { title: 'Root + fifth + octave', notes: [root, root + 7, root + 12] },
+  ] : null;
+  const count = leftHandForms?.length || chord?.intervals.length || 3;
+  const pianoStart = isLeftHand ? 48 : 60;
+  const pianoEnd = isLeftHand ? 71 : 95;
   elements.inversionGrid.classList.toggle('is-four', count === 4);
-  elements.inversionsHeading.textContent = count === 4 ? 'Four positions' : 'Three positions';
-  elements.inversionCaption.textContent = chord
-    ? `${chord.name} across root position and ${count === 4 ? 'three' : 'both'} inversions.`
-    : 'Play a chord to see its inversions.';
+  elements.inversionsHeading.textContent = isLeftHand ? 'Left-hand shapes'
+    : count === 4 ? 'Four positions' : 'Three positions';
+  if (isLeftHand) {
+    elements.inversionCaption.textContent = `${chord.rootName.replace('b', '♭').replace('#', '♯')} in three common left-hand patterns.`;
+  } else {
+    elements.inversionCaption.textContent = chord
+      ? `${chord.name} in root position and ${count === 4 ? 'three' : 'both'} inversions.`
+      : 'Play a chord to see its inversions.';
+  }
 
   const positions = ['Root position', 'First inversion', 'Second inversion', 'Third inversion'];
   for (let inversion = 0; inversion < count; inversion += 1) {
-    const notes = chord ? voicingForChord(chord, inversion) : [];
+    const form = leftHandForms?.[inversion];
+    const notes = form?.notes || (chord ? voicingForChord(chord, inversion) : []);
+    const titleText = form?.title || positions[inversion];
     const card = document.createElement('div');
     card.className = 'panel form-card';
     const title = document.createElement('div');
     title.className = 'form-title';
     const name = document.createElement('span');
-    name.textContent = positions[inversion];
+    name.textContent = titleText;
     const number = document.createElement('span');
     number.textContent = `0${inversion + 1}`;
     title.append(name, number);
@@ -149,8 +165,8 @@ function renderInversions(chord) {
     noteLine.textContent = notes.length
       ? notes.map((midi) => spellMidiNote(midi, key).label).join(' · ')
       : '—';
-    card.append(title, noteLine, createPiano(60, 95, notes, `${positions[inversion]} piano keys`));
-    appendPianoRange(card, 60, 95);
+    card.append(title, noteLine, createPiano(pianoStart, pianoEnd, notes, `${titleText} piano keys`));
+    appendPianoRange(card, pianoStart, pianoEnd);
     elements.inversionGrid.append(card);
   }
 }
@@ -172,15 +188,17 @@ function renderLive() {
 
   if (chord) {
     elements.chordName.textContent = chord.displayName;
-    elements.chordDetail.textContent = `${QUALITIES[chord.quality].label}${chord.bassPc !== chord.rootPc ? ' in inversion' : ''}${chord.inKey ? ' · in this key' : ' · outside this key'}.`;
+    elements.chordDetail.textContent = `${QUALITIES[chord.quality].label}${chord.bassPc !== chord.rootPc ? ' in inversion' : ''}${chord.pattern ? ` · ${chord.pattern}` : ''}${chord.inKey ? ' · in this key' : ' · outside this key'}.`;
     elements.degreeBadge.textContent = chord.inKey ? `${chord.degree ? `${chord.degree} · ` : ''}in key` : 'Outside key';
     elements.degreeBadge.hidden = false;
   } else {
     elements.chordName.textContent = '—';
     elements.chordDetail.textContent = !notes.length
-      ? 'Play three or four different notes to identify a chord.'
-      : distinctPitches < 3
-        ? 'Add another pitch to complete a chord.'
+      ? 'Play an octave, a perfect fifth, or a chord.'
+      : distinctPitches === 1
+        ? 'Add a note one octave away to make an octave pair.'
+        : distinctPitches === 2
+          ? 'Try a perfect fifth or add a note to make a chord.'
         : distinctPitches > 4
           ? 'More than four pitches are sounding. Try releasing a note or the sustain pedal.'
           : 'These notes do not match a supported chord.';

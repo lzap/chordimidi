@@ -54,6 +54,17 @@ test('recognizes common suspended, sixth, and seventh chords exactly', () => {
   assert.equal(recognizeChord([60, 64, 68, 71], key), null);
 });
 
+test('recognizes beginner left-hand fifth and octave patterns', () => {
+  const key = getKey('C-major');
+  assert.equal(recognizeChord([48, 55], key).displayName, 'C5');
+  assert.equal(recognizeChord([55, 60], key).displayName, 'C5/G');
+  assert.equal(recognizeChord([48, 55, 60], key).pattern, 'Root + fifth + octave');
+  assert.equal(recognizeChord([48, 60], key).displayName, 'C octave');
+  assert.equal(recognizeChord([48], key), null);
+  assert.equal(recognizeChord([48, 52], key), null);
+  assert.equal(recognizeChord([48, 72], key), null);
+});
+
 test('bass note resolves overlapping sixth and seventh names', () => {
   const key = getKey('C-major');
   assert.equal(recognizeChord([60, 64, 67, 69], key).name, 'C6');
