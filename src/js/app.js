@@ -1,4 +1,4 @@
-import { KEYS, QUALITIES, getKey, recommendationsForKey, spellMidiNote, triadsForKey, voicingForChord } from './theory.js';
+import { KEYS, QUALITIES, chromaticChordsForKey, getKey, recommendationsForKey, spellMidiNote, triadsForKey, voicingForChord } from './theory.js';
 import { MidiNoteTracker } from './midi-state.js';
 import { chordInputNotes, guessKeys, noteOnMidi, recognizeChordWithMelody } from './analysis.js';
 import { staffSvg } from './staff.js';
@@ -31,6 +31,7 @@ const elements = {
   inversionCaption: document.querySelector('#inversion-caption'),
   exploreGrid: document.querySelector('#explore-grid'),
   exploreCaption: document.querySelector('#explore-caption'),
+  exploreOutOfKey: document.querySelector('#explore-out-of-key'),
 };
 
 const tracker = new MidiNoteTracker();
@@ -138,7 +139,7 @@ function createTriadCard(triad) {
   const card = document.createElement('button');
   card.type = 'button';
   card.className = `triad-card${preview?.name === triad.name ? ' is-previewing' : ''}`;
-  card.setAttribute('aria-label', `Preview ${triad.name}, ${triad.noteNames.join(', ')}`);
+  card.setAttribute('aria-label', `Preview ${triad.name}, ${triad.noteNames.join(', ')}${triad.isChromatic ? ', outside the key' : ''}`);
 
   const heading = document.createElement('div');
   heading.className = 'triad-heading';
@@ -152,11 +153,11 @@ function createTriadCard(triad) {
 
   const noteLine = document.createElement('div');
   noteLine.className = 'triad-notes';
-  noteLine.textContent = triad.noteNames.map((note) => note.replace('b', '♭').replace('#', '♯')).join(' · ');
+  noteLine.textContent = triad.noteNames.map((note) => note.replaceAll('b', '♭').replaceAll('#', '♯')).join(' · ');
   card.append(heading, noteLine, createPiano(60, 83, notes, `${triad.name} piano keys`));
   appendPianoRange(card, 60, 83);
   card.addEventListener('click', () => {
-    preview = { name: triad.name, notes };
+    preview = { name: triad.name, notes, chord: triad.isChromatic ? triad : null };
     renderTriads();
     renderLive();
   });
@@ -168,6 +169,12 @@ function renderTriads() {
 }
 
 function renderExplore(chord) {
+  if (elements.exploreOutOfKey.checked) {
+    const chords = chromaticChordsForKey(key);
+    elements.exploreCaption.textContent = `Borrowed from ${key.label.replace(key.mode, key.mode === 'major' ? 'minor' : 'major')} (same tonic).`;
+    elements.exploreGrid.replaceChildren(...chords.map(createTriadCard));
+    return;
+  }
   const { source, chords } = recommendationsForKey(key, chord);
   elements.exploreCaption.textContent = source
     ? `Diatonic chords to try after ${source}.`
@@ -250,7 +257,7 @@ function renderLive() {
   const { notes, pedal } = currentSnapshot();
   const midiNotes = notes.map((note) => note.midi);
   const chordMidiNotes = chordInputNotes(notes, splitNote, Boolean(preview)).map((note) => note.midi);
-  const chord = recognizeChordWithMelody(chordMidiNotes, key);
+  const chord = preview?.chord || recognizeChordWithMelody(chordMidiNotes, key);
   const distinctPitches = new Set(chordMidiNotes.map((note) => note % 12)).size;
 
   elements.liveMode.textContent = preview ? `Preview: ${preview.name}`
@@ -426,6 +433,7 @@ elements.clearPreview.addEventListener('click', () => {
   renderTriads();
   renderLive();
 });
+elements.exploreOutOfKey.addEventListener('change', renderLive);
 
 renderKeyOptions();
 renderKeyDetectionStatus();

@@ -12,6 +12,12 @@ const EXPLORE_PRIORITY = {
   major: [0, 3, 4, 5, 1, 2, 6],
   minor: [0, 3, 6, 5, 2, 4, 1],
 };
+// Four recognizable colors from the parallel mode. Major-key examples:
+// C major -> Fm, Eb, Ab, Bb. Minor-key examples: A minor -> E, D, A, Bm.
+const CHROMATIC_TRIADS = {
+  major: [[3, 0, 'minor', 'iv'], [2, -1, 'major', '♭III'], [5, -1, 'major', '♭VI'], [6, -1, 'major', '♭VII']],
+  minor: [[4, 0, 'major', 'V'], [3, 0, 'major', 'IV'], [0, 0, 'major', 'I'], [1, 0, 'minor', 'ii']],
+};
 const CHORD_DEGREES = {
   power: [0, 4], octave: [0, 0],
   suspended2: [0, 1, 4], suspended4: [0, 3, 4],
@@ -115,7 +121,14 @@ export function qualityForIntervals(third, fifth) {
 }
 
 export function chordName(rootName, quality) {
-  return `${rootName.replace('b', '♭').replace('#', '♯')}${QUALITIES[quality].suffix}`;
+  return `${rootName.replaceAll('b', '♭').replaceAll('#', '♯')}${QUALITIES[quality].suffix}`;
+}
+
+function shiftScaleNote(note, semitones) {
+  const pc = (note.pc + semitones + 12) % 12;
+  let offset = (pc - NATURAL_PITCHES[note.letter] + 12) % 12;
+  if (offset > 6) offset -= 12;
+  return note.letter + (offset > 0 ? '#'.repeat(offset) : 'b'.repeat(-offset));
 }
 
 export function triadsForKey(key) {
@@ -149,6 +162,20 @@ export function recommendationsForKey(key, chord) {
   const indexes = currentIndex < 0 ? priority.slice(0, 4) : [...NEXT_TRIADS[key.mode][currentIndex]];
   if (currentIndex >= 0) indexes.push(priority.find((index) => index !== currentIndex && !indexes.includes(index)));
   return { source: currentIndex < 0 ? null : chord.name, chords: indexes.map((index) => triads[index]) };
+}
+
+export function chromaticChordsForKey(key) {
+  const scale = scaleForKey(key);
+  return CHROMATIC_TRIADS[key.mode].map(([index, shift, quality, degree]) => {
+    const rootName = shiftScaleNote(scale[index], shift);
+    const intervals = QUALITIES[quality].intervals;
+    const noteNames = spellChordTones(rootName, intervals, quality);
+    if (!noteNames) throw new Error(`Cannot spell ${rootName} ${quality}`);
+    const rootPc = pitchClass(rootName);
+    const name = chordName(rootName, quality);
+    return { rootPc, rootName, quality, intervals, name, displayName: name,
+      bassPc: rootPc, inKey: false, isChromatic: true, degree, noteNames };
+  });
 }
 
 export function nameForPitchClass(pc, key) {
@@ -220,8 +247,10 @@ export function recognizeChord(midiNotes, key) {
     a.rootPc - b.rootPc);
 
   const chosen = candidates[0];
+  const chromatic = chromaticChordsForKey(key).find((item) =>
+    item.rootPc === chosen.rootPc && item.quality === chosen.quality);
   const { rootName, noteNames } = spellRecognizedChord(
-    chosen.rootPc, chosen.intervals, chosen.quality, key, chosen.diatonic?.rootName);
+    chosen.rootPc, chosen.intervals, chosen.quality, key, chosen.diatonic?.rootName || chromatic?.rootName);
   const bassTone = chosen.intervals.findIndex((interval) => (chosen.rootPc + interval) % 12 === bassPc);
   const bassName = noteNames[bassTone];
   const name = chordName(rootName, chosen.quality);
@@ -236,7 +265,7 @@ export function recognizeChord(midiNotes, key) {
     bassName,
     name,
     displayName: bassPc === chosen.rootPc ? name : `${name}/${bassName.replaceAll('b', '♭').replaceAll('#', '♯')}`,
-    degree: chosen.diatonic?.degree || null,
+    degree: chosen.diatonic?.degree || chromatic?.degree || null,
     pattern,
   };
 }

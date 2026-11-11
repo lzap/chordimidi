@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { KEYS, getKey, pitchClass, recognizeChord, recommendationsForKey, scaleForKey, spellMidiNote, triadsForKey, voicingForChord } from '../src/js/theory.js';
+import { KEYS, chromaticChordsForKey, getKey, pitchClass, recognizeChord, recommendationsForKey, scaleForKey, spellMidiNote, triadsForKey, voicingForChord } from '../src/js/theory.js';
 import { staffSvg } from '../src/js/staff.js';
 
 test('every supported key has seven spelled diatonic triads', () => {
@@ -40,6 +40,29 @@ test('explore suggests four distinct diatonic chords for the key and current cho
       assert.equal(suggestions.length, 4);
       assert.equal(new Set(suggestions.map((item) => item.name)).size, 4);
       assert.ok(suggestions.every((item) => item.name !== chord.name));
+    }
+  }
+});
+
+test('out-of-key suggestions use parallel-mode colors with correct spelling', () => {
+  assert.deepEqual(chromaticChordsForKey(getKey('C-major')).map((chord) => chord.name),
+    ['Fm', 'E♭', 'A♭', 'B♭']);
+  assert.deepEqual(chromaticChordsForKey(getKey('A-minor')).map((chord) => chord.name),
+    ['E', 'D', 'A', 'Bm']);
+  const flatSix = chromaticChordsForKey(getKey('C-major'))[2];
+  assert.deepEqual(flatSix.noteNames, ['Ab', 'C', 'Eb']);
+  assert.equal(recognizeChord(voicingForChord(flatSix), getKey('C-major')).name, 'A♭');
+  assert.deepEqual(chromaticChordsForKey(getKey('Db-major'))[2].noteNames,
+    ['Bbb', 'Db', 'Fb']);
+  for (const key of KEYS) {
+    const scale = new Set(scaleForKey(key).map((note) => note.pc));
+    const chords = chromaticChordsForKey(key);
+    assert.equal(chords.length, 4, key.label);
+    assert.equal(new Set(chords.map((chord) => chord.name)).size, 4, key.label);
+    for (const chord of chords) {
+      assert.equal(chord.noteNames.length, 3, `${key.label}: ${chord.name}`);
+      assert.ok(chord.noteNames.some((name) => !scale.has(pitchClass(name))), `${key.label}: ${chord.name}`);
+      assert.equal(recognizeChord(voicingForChord(chord), key).name, chord.name);
     }
   }
 });
