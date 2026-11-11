@@ -54,10 +54,10 @@ function ledgerMarkup(y, staff, x) {
   return markup;
 }
 
-export function staffSvg(midiNotes, key) {
+export function staffSvg(midiNotes, key, chord = null) {
   const notes = [...new Set(midiNotes)].sort((a, b) => a - b)
     .map((midi) => {
-      const spelled = spellMidiNote(midi, key);
+      const spelled = spellMidiNote(midi, key, chord);
       return { ...spelled, ...position(spelled) };
     });
   const minY = Math.min(32, ...notes.map((note) => note.y - 24));
@@ -72,9 +72,10 @@ export function staffSvg(midiNotes, key) {
     const x = 338 + (nearby.length % 2 ? 18 : 0);
     const expected = signatureAccidental(note.letter, key);
     const glyph = note.accidental === expected ? '' :
-      note.accidental === '#' ? '♯' : note.accidental === 'b' ? '♭' : '♮';
+      note.accidental === '#' ? '♯' : note.accidental === 'b' ? '♭' :
+        note.accidental === '##' ? '♯♯' : note.accidental === 'bb' ? '♭♭' : '♮';
     noteMarkup += ledgerMarkup(note.y, note.staff, x);
-    if (glyph) noteMarkup += `<text class="staff-note-accidental" x="${x - 31}" y="${note.y + 6}">${glyph}</text>`;
+    if (glyph) noteMarkup += `<text class="staff-note-accidental" x="${x - (glyph.length > 1 ? 43 : 31)}" y="${note.y + 6}">${glyph}</text>`;
     noteMarkup += `<ellipse class="staff-notehead" cx="${x}" cy="${note.y}" rx="10" ry="6" transform="rotate(-18 ${x} ${note.y})" />`;
   });
 

@@ -116,7 +116,7 @@ function currentSnapshot() {
   return tracker.snapshot();
 }
 
-function renderNoteList(notes) {
+function renderNoteList(notes, chord) {
   elements.noteList.replaceChildren();
   if (!notes.length) {
     const placeholder = document.createElement('span');
@@ -128,7 +128,7 @@ function renderNoteList(notes) {
   for (const note of notes) {
     const chip = document.createElement('span');
     chip.className = `note-chip${note.state === 'sustained' ? ' is-sustained' : ''}`;
-    chip.textContent = spellMidiNote(note.midi, key).label;
+    chip.textContent = spellMidiNote(note.midi, key, chord).label;
     if (note.state === 'sustained') chip.title = 'Held by the sustain pedal';
     elements.noteList.append(chip);
   }
@@ -174,7 +174,7 @@ function renderInversions(chord) {
     const noteLine = document.createElement('div');
     noteLine.className = 'form-notes';
     noteLine.textContent = notes.length
-      ? notes.map((midi) => spellMidiNote(midi, key).label).join(' · ')
+      ? notes.map((midi) => spellMidiNote(midi, key, chord).label).join(' · ')
       : '—';
     card.append(title, noteLine, createPiano(pianoStart, pianoEnd, notes, `${titleText} piano keys`));
     appendPianoRange(card, pianoStart, pianoEnd);
@@ -193,8 +193,8 @@ function renderLive() {
   elements.clearPreview.hidden = !preview;
   elements.staffKeyLabel.textContent = key.label;
   elements.noteCount.textContent = `${notes.length} ${notes.length === 1 ? 'note' : 'notes'}`;
-  elements.liveStaff.innerHTML = staffSvg(midiNotes, key);
-  renderNoteList(notes);
+  elements.liveStaff.innerHTML = staffSvg(midiNotes, key, chord);
+  renderNoteList(notes, chord);
   elements.pedalBadge.hidden = !pedal;
 
   if (chord) {

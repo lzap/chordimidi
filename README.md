@@ -6,6 +6,7 @@ A static Web MIDI page for seeing the notes you play, recognizing chords, and ex
 
 - Live grand staff with every held or sustain-pedal-held MIDI note.
 - Major and natural minor keys, with key signatures and note spelling.
+- Recognized chords spell their notes from the chord root, including double accidentals where needed; unmatched notes use the selected key. An enharmonic root is used if the key's spelling would require triple accidentals.
 - Exact recognition for perfect fifths (power chords), octave pairs, major, minor, diminished, augmented, sus2, and sus4 triads; major, dominant, minor, half-diminished, and diminished sevenths; and major and minor sixths. Octave doublings of chords are ignored; extra pitch classes do not trigger a partial chord match.
 - Seven diatonic triads shown on piano keyboards. Click one to preview it without a MIDI device.
 - An Explore section suggests three diatonic triads to try after the current chord, or starter chords when none is recognized. These are practice ideas, not a unique harmonic answer.

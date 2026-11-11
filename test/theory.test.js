@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { KEYS, getKey, recognizeChord, recommendationsForKey, scaleForKey, spellMidiNote, triadsForKey, voicingForChord } from '../src/js/theory.js';
+import { KEYS, getKey, pitchClass, recognizeChord, recommendationsForKey, scaleForKey, spellMidiNote, triadsForKey, voicingForChord } from '../src/js/theory.js';
+import { staffSvg } from '../src/js/staff.js';
 
 test('every supported key has seven spelled diatonic triads', () => {
   for (const key of KEYS) {
@@ -89,6 +90,23 @@ test('key context chooses the diatonic spelling', () => {
   const key = getKey('Db-major');
   assert.equal(recognizeChord([61, 65, 68], key).name, 'D♭');
   assert.equal(spellMidiNote(59, getKey('Eb-minor')).label, 'C♭4');
+});
+
+test('recognized chord tones use harmonic spelling on notes and staff', () => {
+  const key = getKey('C-major');
+  const diminished = recognizeChord([60, 63, 66, 69], key);
+  assert.deepEqual(diminished.noteNames, ['C', 'Eb', 'Gb', 'Bbb']);
+  assert.equal(spellMidiNote(69, key, diminished).label, 'B♭♭4');
+  assert.match(staffSvg([60, 63, 66, 69], key, diminished), /♭♭<\/text>/);
+  assert.equal(pitchClass('Bbb'), 9);
+
+  const dominant = recognizeChord([60, 64, 67, 70], key);
+  assert.equal(spellMidiNote(70, key, dominant).label, 'B♭4');
+  const sharpMajor = recognizeChord([61, 65, 68], key);
+  assert.deepEqual(sharpMajor.noteNames, ['C#', 'E#', 'G#']);
+  assert.equal(spellMidiNote(65, key, sharpMajor).label, 'E♯4');
+  assert.equal(spellMidiNote(63, key).label, 'D♯4');
+  assert.equal(recognizeChord([59, 62, 65, 68], getKey('Eb-minor')).name, 'B°7');
 });
 
 test('all inversion voicings fit the shared three-octave keyboard', () => {

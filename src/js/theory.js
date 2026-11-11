@@ -8,6 +8,11 @@ const NEXT_TRIADS = {
   major: [[3, 4, 5], [4, 0, 5], [5, 3, 1], [4, 0, 1], [0, 5, 3], [3, 1, 4], [0, 2, 4]],
   minor: [[3, 5, 6], [4, 0, 3], [5, 6, 3], [6, 0, 4], [0, 5, 3], [3, 6, 0], [2, 0, 5]],
 };
+const CHORD_DEGREES = {
+  power: [0, 4], octave: [0, 0],
+  suspended2: [0, 1, 4], suspended4: [0, 3, 4],
+  major6: [0, 2, 4, 5], minor6: [0, 2, 4, 5],
+};
 
 export const QUALITIES = {
   power: { intervals: [0, 7], suffix: '5', label: 'Perfect fifth' },
@@ -51,9 +56,38 @@ export function getKey(id) {
 }
 
 export function pitchClass(noteName) {
-  const match = /^([A-G])([#b]?)$/.exec(noteName);
+  const match = /^([A-G])(#{1,2}|b{1,2})?$/.exec(noteName);
   if (!match) throw new Error(`Invalid note name: ${noteName}`);
-  return (NATURAL_PITCHES[match[1]] + (match[2] === '#' ? 1 : match[2] === 'b' ? -1 : 0) + 12) % 12;
+  return (NATURAL_PITCHES[match[1]] + accidentalOffset(match[2] || '') + 12) % 12;
+}
+
+function accidentalOffset(accidental) {
+  return [...accidental].reduce((offset, symbol) => offset + (symbol === '#' ? 1 : -1), 0);
+}
+
+function spellChordTones(rootName, intervals, quality) {
+  const rootIndex = LETTERS.indexOf(rootName[0]);
+  const rootPc = pitchClass(rootName);
+  const degrees = CHORD_DEGREES[quality] || (intervals.length === 4 ? [0, 2, 4, 6] : [0, 2, 4]);
+  const notes = [];
+  for (const [index, interval] of intervals.entries()) {
+    const letter = LETTERS[(rootIndex + degrees[index]) % 7];
+    const pc = (rootPc + interval) % 12;
+    let offset = (pc - NATURAL_PITCHES[letter] + 12) % 12;
+    if (offset > 6) offset -= 12;
+    if (Math.abs(offset) > 2) return null;
+    notes.push(letter + (offset > 0 ? '#'.repeat(offset) : 'b'.repeat(-offset)));
+  }
+  return notes;
+}
+
+function spellRecognizedChord(rootPc, intervals, quality, key, preferredName) {
+  const names = [preferredName, nameForPitchClass(rootPc, key), SHARP_NAMES[rootPc], FLAT_NAMES[rootPc]];
+  for (const rootName of new Set(names.filter(Boolean))) {
+    const noteNames = spellChordTones(rootName, intervals, quality);
+    if (noteNames) return { rootName, noteNames };
+  }
+  throw new Error(`Cannot spell ${quality} on pitch class ${rootPc}`);
 }
 
 export function scaleForKey(key) {
@@ -119,14 +153,15 @@ export function nameForPitchClass(pc, key) {
   return (key.signature < 0 ? FLAT_NAMES : SHARP_NAMES)[pc];
 }
 
-export function spellMidiNote(midi, key) {
-  const name = nameForPitchClass(midi % 12, key);
+export function spellMidiNote(midi, key, chord = null) {
+  const chordTone = chord?.intervals.findIndex((interval) => (chord.rootPc + interval) % 12 === midi % 12) ?? -1;
+  const name = chordTone >= 0 ? chord.noteNames[chordTone] : nameForPitchClass(midi % 12, key);
   const letter = name[0];
   const accidental = name.slice(1);
-  const offset = accidental === '#' ? 1 : accidental === 'b' ? -1 : 0;
+  const offset = accidentalOffset(accidental);
   const octave = (midi - NATURAL_PITCHES[letter] - offset) / 12 - 1;
   return { midi, name, letter, accidental, octave,
-    label: `${name.replace('b', '♭').replace('#', '♯')}${octave}` };
+    label: `${name.replaceAll('b', '♭').replaceAll('#', '♯')}${octave}` };
 }
 
 function samePitchClasses(notes, intervals, rootPc) {
@@ -145,10 +180,11 @@ export function recognizeChord(midiNotes, key) {
   const inKey = [...pcs].every((pc) => scale.some((note) => note.pc === pc));
   if (pcs.size === 1) {
     if (notes.length !== 2 || notes[1] - notes[0] !== 12) return null;
-    const rootName = nameForPitchClass(bassPc, key);
+    const { rootName, noteNames } = spellRecognizedChord(bassPc, QUALITIES.octave.intervals, 'octave', key);
     const name = chordName(rootName, 'octave');
     return { rootPc: bassPc, rootName, bassPc, bassName: rootName,
       quality: 'octave', intervals: QUALITIES.octave.intervals, inKey,
+      noteNames,
       degree: null, name, displayName: name };
   }
   const diatonicTriads = triadsForKey(key);
@@ -180,8 +216,10 @@ export function recognizeChord(midiNotes, key) {
     a.rootPc - b.rootPc);
 
   const chosen = candidates[0];
-  const rootName = chosen.diatonic?.rootName || nameForPitchClass(chosen.rootPc, key);
-  const bassName = nameForPitchClass(bassPc, key);
+  const { rootName, noteNames } = spellRecognizedChord(
+    chosen.rootPc, chosen.intervals, chosen.quality, key, chosen.diatonic?.rootName);
+  const bassTone = chosen.intervals.findIndex((interval) => (chosen.rootPc + interval) % 12 === bassPc);
+  const bassName = noteNames[bassTone];
   const name = chordName(rootName, chosen.quality);
   const pattern = chosen.quality === 'power' && notes.length === 3 &&
     notes[1] - notes[0] === 7 && notes[2] - notes[0] === 12
@@ -189,10 +227,11 @@ export function recognizeChord(midiNotes, key) {
   return {
     ...chosen,
     rootName,
+    noteNames,
     bassPc,
     bassName,
     name,
-    displayName: bassPc === chosen.rootPc ? name : `${name}/${bassName.replace('b', '♭').replace('#', '♯')}`,
+    displayName: bassPc === chosen.rootPc ? name : `${name}/${bassName.replaceAll('b', '♭').replaceAll('#', '♯')}`,
     degree: chosen.diatonic?.degree || null,
     pattern,
   };
