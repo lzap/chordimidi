@@ -28,8 +28,39 @@ test('recognition ignores octave doublings and names inversions', () => {
   const key = getKey('C-major');
   assert.equal(recognizeChord([60, 64, 67, 72], key).displayName, 'C');
   assert.equal(recognizeChord([52, 55, 60], key).displayName, 'C/E');
-  assert.equal(recognizeChord([60, 64, 67, 70], key), null);
+  assert.equal(recognizeChord([60, 64, 67, 70], key).displayName, 'C7');
   assert.equal(recognizeChord([60, 63, 66], key).name, 'C°');
+});
+
+test('recognizes common suspended, sixth, and seventh chords exactly', () => {
+  const key = getKey('C-major');
+  const examples = [
+    [[60, 62, 67], 'Csus2'],
+    [[60, 65, 67], 'Csus4'],
+    [[60, 64, 67, 71], 'Cmaj7'],
+    [[55, 59, 62, 65], 'G7'],
+    [[57, 60, 64, 67], 'Am7'],
+    [[59, 62, 65, 69], 'Bø7'],
+    [[59, 62, 65, 68], 'B°7'],
+    [[60, 64, 67, 69], 'C6'],
+    [[60, 63, 67, 69], 'Cm6'],
+  ];
+  for (const [notes, name] of examples) {
+    assert.equal(recognizeChord(notes, key).name, name);
+  }
+  assert.equal(recognizeChord([60, 64, 67, 71, 72], key).name, 'Cmaj7');
+  assert.equal(recognizeChord([52, 55, 59, 60], key).displayName, 'Cmaj7/E');
+  assert.equal(recognizeChord([60, 64, 67, 70, 74], key), null);
+  assert.equal(recognizeChord([60, 64, 68, 71], key), null);
+});
+
+test('bass note resolves overlapping sixth and seventh names', () => {
+  const key = getKey('C-major');
+  assert.equal(recognizeChord([60, 64, 67, 69], key).name, 'C6');
+  assert.equal(recognizeChord([57, 60, 64, 67], key).name, 'Am7');
+  assert.equal(recognizeChord([59, 62, 65, 69], key).degree, 'viiø');
+  assert.equal(recognizeChord([60, 64, 67, 71], key).degree, 'I');
+  assert.equal(recognizeChord([60, 64, 67, 70], key).inKey, false);
 });
 
 test('key context chooses the diatonic spelling', () => {
@@ -48,5 +79,16 @@ test('all inversion voicings fit the shared three-octave keyboard', () => {
           `${key.label} ${triad.name} inversion ${inversion}`);
       }
     }
+  }
+});
+
+test('four-note chords have four ordered voicings within the displayed keyboard', () => {
+  const chord = recognizeChord([60, 64, 67, 71], getKey('C-major'));
+  for (let inversion = 0; inversion < 4; inversion += 1) {
+    const notes = voicingForChord(chord, inversion);
+    assert.equal(notes.length, 4);
+    assert.ok(notes.every((midi) => midi >= 60 && midi <= 95));
+    assert.ok(notes.every((midi, index) => index === 0 || midi > notes[index - 1]));
+    assert.equal(notes[0] % 12, chord.intervals[inversion] % 12);
   }
 });

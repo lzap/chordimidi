@@ -6,10 +6,19 @@ const SHARP_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#',
 const FLAT_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 export const QUALITIES = {
-  major: { intervals: [0, 4, 7], suffix: '' },
-  minor: { intervals: [0, 3, 7], suffix: 'm' },
-  diminished: { intervals: [0, 3, 6], suffix: '°' },
-  augmented: { intervals: [0, 4, 8], suffix: '+' },
+  major: { intervals: [0, 4, 7], suffix: '', label: 'Major triad' },
+  minor: { intervals: [0, 3, 7], suffix: 'm', label: 'Minor triad' },
+  diminished: { intervals: [0, 3, 6], suffix: '°', label: 'Diminished triad' },
+  augmented: { intervals: [0, 4, 8], suffix: '+', label: 'Augmented triad' },
+  suspended2: { intervals: [0, 2, 7], suffix: 'sus2', label: 'Suspended second' },
+  suspended4: { intervals: [0, 5, 7], suffix: 'sus4', label: 'Suspended fourth' },
+  major7: { intervals: [0, 4, 7, 11], suffix: 'maj7', label: 'Major seventh' },
+  dominant7: { intervals: [0, 4, 7, 10], suffix: '7', label: 'Dominant seventh' },
+  minor7: { intervals: [0, 3, 7, 10], suffix: 'm7', label: 'Minor seventh' },
+  halfDiminished7: { intervals: [0, 3, 6, 10], suffix: 'ø7', label: 'Half-diminished seventh' },
+  diminished7: { intervals: [0, 3, 6, 9], suffix: '°7', label: 'Diminished seventh' },
+  major6: { intervals: [0, 4, 7, 9], suffix: '6', label: 'Major sixth' },
+  minor6: { intervals: [0, 3, 7, 9], suffix: 'm6', label: 'Minor sixth' },
 };
 
 const KEY_SPECS = [
@@ -58,7 +67,7 @@ export function scaleForKey(key) {
 
 export function qualityForIntervals(third, fifth) {
   return Object.entries(QUALITIES).find(([, value]) =>
-    value.intervals[1] === third && value.intervals[2] === fifth)?.[0] || null;
+    value.intervals.length === 3 && value.intervals[1] === third && value.intervals[2] === fifth)?.[0] || null;
 }
 
 export function chordName(rootName, quality) {
@@ -107,33 +116,47 @@ export function spellMidiNote(midi, key) {
 
 function samePitchClasses(notes, intervals, rootPc) {
   const target = intervals.map((interval) => (rootPc + interval) % 12);
-  return target.every((pc) => notes.has(pc));
+  return notes.size === target.length && target.every((pc) => notes.has(pc));
 }
 
 export function recognizeChord(midiNotes, key) {
   const notes = [...new Set(midiNotes)].sort((a, b) => a - b);
   const pcs = new Set(notes.map((note) => note % 12));
-  if (pcs.size !== 3) return null;
+  if (pcs.size !== 3 && pcs.size !== 4) return null;
 
   const bassPc = notes[0] % 12;
+  const scale = scaleForKey(key);
+  const inKey = [...pcs].every((pc) => scale.some((note) => note.pc === pc));
   const diatonicTriads = triadsForKey(key);
+  const diatonicSevenths = scale.map((root, index) => ({
+    rootPc: root.pc,
+    rootName: root.name,
+    degree: diatonicTriads[index].degree.replace('°', 'ø'),
+    intervals: [0, 2, 4, 6].map((offset) =>
+      (scale[(index + offset) % 7].pc - root.pc + 12) % 12),
+  }));
+  const diatonicChords = [...diatonicTriads, ...diatonicSevenths];
+  const qualityOrder = Object.keys(QUALITIES);
   const candidates = [];
   for (let rootPc = 0; rootPc < 12; rootPc += 1) {
     for (const [quality, spec] of Object.entries(QUALITIES)) {
       if (!samePitchClasses(pcs, spec.intervals, rootPc)) continue;
-      const inKey = diatonicTriads.find((triad) =>
-        triad.rootPc === rootPc && triad.quality === quality);
-      candidates.push({ rootPc, quality, intervals: spec.intervals, inKey });
+      const diatonic = diatonicChords.find((chord) =>
+        chord.rootPc === rootPc &&
+        chord.intervals.length === spec.intervals.length &&
+        chord.intervals.every((interval, index) => interval === spec.intervals[index]));
+      candidates.push({ rootPc, quality, intervals: spec.intervals, inKey, diatonic });
     }
   }
   if (!candidates.length) return null;
   candidates.sort((a, b) =>
-    Number(Boolean(b.inKey)) - Number(Boolean(a.inKey)) ||
     Number(b.rootPc === bassPc) - Number(a.rootPc === bassPc) ||
+    Number(Boolean(b.diatonic)) - Number(Boolean(a.diatonic)) ||
+    qualityOrder.indexOf(a.quality) - qualityOrder.indexOf(b.quality) ||
     a.rootPc - b.rootPc);
 
   const chosen = candidates[0];
-  const rootName = chosen.inKey?.rootName || nameForPitchClass(chosen.rootPc, key);
+  const rootName = chosen.diatonic?.rootName || nameForPitchClass(chosen.rootPc, key);
   const bassName = nameForPitchClass(bassPc, key);
   const name = chordName(rootName, chosen.quality);
   return {
@@ -143,15 +166,12 @@ export function recognizeChord(midiNotes, key) {
     bassName,
     name,
     displayName: bassPc === chosen.rootPc ? name : `${name}/${bassName.replace('b', '♭').replace('#', '♯')}`,
-    degree: chosen.inKey?.degree || null,
+    degree: chosen.diatonic?.degree || null,
   };
 }
 
 export function voicingForChord(chord, inversion = 0) {
   const root = 60 + chord.rootPc;
-  const [unison, third, fifth] = chord.intervals;
-  const rootPosition = [root + unison, root + third, root + fifth];
-  if (inversion === 1) return [rootPosition[1], rootPosition[2], rootPosition[0] + 12];
-  if (inversion === 2) return [rootPosition[2], rootPosition[0] + 12, rootPosition[1] + 12];
-  return rootPosition;
+  const rootPosition = chord.intervals.map((interval) => root + interval);
+  return [...rootPosition.slice(inversion), ...rootPosition.slice(0, inversion).map((midi) => midi + 12)];
 }

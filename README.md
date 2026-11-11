@@ -1,17 +1,19 @@
 # Chordimidi
 
-A static Web MIDI page for seeing the notes you play, recognizing basic triads, and exploring the seven diatonic triads of a selected key.
+A static Web MIDI page for seeing the notes you play, recognizing chords, and exploring the seven diatonic triads of a selected key.
 
 ## Features
 
 - Live grand staff with every held or sustain-pedal-held MIDI note.
 - Major and natural minor keys, with key signatures and note spelling.
-- Exact triad recognition for major, minor, diminished, and augmented chords. Octave doublings are ignored; extra pitch classes do not trigger a partial chord match.
+- Exact recognition for major, minor, diminished, augmented, sus2, and sus4 triads; major, dominant, minor, half-diminished, and diminished sevenths; and major and minor sixths. Octave doublings are ignored; extra pitch classes do not trigger a partial chord match.
 - Seven diatonic triads shown on piano keyboards. Click one to preview it without a MIDI device.
-- A recognized triad displayed in root position and both inversions on three equal-sized keyboards.
+- Recognized three-note chords have three position keyboards; four-note chords have four.
 - MIDI input selection and device hot-plug handling.
 
 The site uses browser-native APIs and has no third-party packages or runtime services. MIDI data stays in the browser. It does not play audio or record note history.
+
+Chord names are chosen by the bass note, then the selected key, when the same pitches fit more than one chord (for example, C6 and Am7). Recognition requires every chord tone, so incomplete jazz voicings and ninth, eleventh, or thirteenth chords are outside the current scope.
 
 ## Run locally
 

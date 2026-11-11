@@ -1,4 +1,4 @@
-import { KEYS, getKey, recognizeChord, spellMidiNote, triadsForKey, voicingForChord } from './theory.js';
+import { KEYS, QUALITIES, getKey, recognizeChord, spellMidiNote, triadsForKey, voicingForChord } from './theory.js';
 import { MidiNoteTracker } from './midi-state.js';
 import { staffSvg } from './staff.js';
 import { createPiano } from './piano.js';
@@ -20,6 +20,7 @@ const elements = {
   pedalBadge: document.querySelector('#pedal-badge'),
   triadGrid: document.querySelector('#triad-grid'),
   inversionGrid: document.querySelector('#inversion-grid'),
+  inversionsHeading: document.querySelector('#inversions-heading'),
   inversionCaption: document.querySelector('#inversion-caption'),
 };
 
@@ -124,12 +125,15 @@ function renderNoteList(notes) {
 
 function renderInversions(chord) {
   elements.inversionGrid.replaceChildren();
+  const count = chord?.intervals.length || 3;
+  elements.inversionGrid.classList.toggle('is-four', count === 4);
+  elements.inversionsHeading.textContent = count === 4 ? 'Four positions' : 'Three positions';
   elements.inversionCaption.textContent = chord
-    ? `${chord.name} across root position and both inversions.`
-    : 'Play a triad to see its inversions.';
+    ? `${chord.name} across root position and ${count === 4 ? 'three' : 'both'} inversions.`
+    : 'Play a chord to see its inversions.';
 
-  const positions = ['Root position', 'First inversion', 'Second inversion'];
-  for (let inversion = 0; inversion < 3; inversion += 1) {
+  const positions = ['Root position', 'First inversion', 'Second inversion', 'Third inversion'];
+  for (let inversion = 0; inversion < count; inversion += 1) {
     const notes = chord ? voicingForChord(chord, inversion) : [];
     const card = document.createElement('div');
     card.className = 'panel form-card';
@@ -168,19 +172,18 @@ function renderLive() {
 
   if (chord) {
     elements.chordName.textContent = chord.displayName;
-    const quality = chord.quality[0].toUpperCase() + chord.quality.slice(1);
-    elements.chordDetail.textContent = `${quality} triad${chord.bassPc !== chord.rootPc ? ' in inversion' : ''}${chord.inKey ? ' · in this key' : ' · outside this key'}.`;
-    elements.degreeBadge.textContent = chord.inKey ? `${chord.degree} · in key` : 'Outside key';
+    elements.chordDetail.textContent = `${QUALITIES[chord.quality].label}${chord.bassPc !== chord.rootPc ? ' in inversion' : ''}${chord.inKey ? ' · in this key' : ' · outside this key'}.`;
+    elements.degreeBadge.textContent = chord.inKey ? `${chord.degree ? `${chord.degree} · ` : ''}in key` : 'Outside key';
     elements.degreeBadge.hidden = false;
   } else {
     elements.chordName.textContent = '—';
     elements.chordDetail.textContent = !notes.length
-      ? 'Play three different notes to identify a triad.'
+      ? 'Play three or four different notes to identify a chord.'
       : distinctPitches < 3
-        ? 'Add another pitch to complete a triad.'
-        : distinctPitches > 3
-          ? 'More than three pitches are sounding. Triads require exactly three.'
-          : 'These notes do not form a basic triad.';
+        ? 'Add another pitch to complete a chord.'
+        : distinctPitches > 4
+          ? 'More than four pitches are sounding. Try releasing a note or the sustain pedal.'
+          : 'These notes do not match a supported chord.';
     elements.degreeBadge.hidden = true;
   }
   renderInversions(chord);
