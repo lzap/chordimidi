@@ -1,0 +1,127 @@
+:root {
+  color-scheme: light;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #202b32;
+  background: #f7f7f4;
+  font-synthesis: none;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; }
+button, select { font: inherit; }
+button { cursor: pointer; }
+
+.page-shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+.site-header { display: flex; align-items: center; justify-content: space-between; padding: 25px 0; border-bottom: 1px solid #dfe4e0; }
+.wordmark { color: #202b32; font-size: 20px; font-weight: 850; letter-spacing: -.06em; text-decoration: none; }
+.wordmark span { color: #208368; }
+.header-caption { color: #66757b; font-size: 13px; }
+.intro { padding: 53px 0 32px; }
+.eyebrow { margin: 0 0 10px; color: #208368; font-size: 11px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+h1, h2, p { margin-top: 0; }
+h1 { margin-bottom: 12px; font-size: clamp(35px, 5vw, 58px); letter-spacing: -.055em; line-height: 1.06; }
+.intro-copy { max-width: 680px; margin-bottom: 0; color: #5d6a70; font-size: 16px; line-height: 1.55; }
+.panel { background: #fff; border: 1px solid #dfe4e0; border-radius: 12px; box-shadow: 0 2px 8px #24322c08; }
+.controls { display: flex; align-items: end; flex-wrap: wrap; gap: 16px; padding: 18px; }
+.control-group { display: flex; flex-direction: column; gap: 7px; }
+.control-group label { color: #526169; font-size: 12px; font-weight: 750; }
+.key-control { width: 190px; }
+.input-control { flex: 1; min-width: 210px; }
+select { width: 100%; height: 42px; padding: 0 12px; color: #202b32; background: #fff; border: 1px solid #cbd5d0; border-radius: 7px; }
+select:disabled { color: #8d999a; background: #f3f5f3; }
+select:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid #85d6b5; outline-offset: 2px; }
+.button { min-height: 42px; padding: 0 18px; border: 0; border-radius: 7px; font-weight: 750; }
+.button-primary { color: #fff; background: #208368; }
+.button-primary:hover:not(:disabled) { background: #176d56; }
+.button:disabled { opacity: .7; cursor: default; }
+.connection-status { flex-basis: 100%; min-height: 16px; color: #65747a; font-size: 12px; }
+.connection-status::before { display: inline-block; width: 7px; height: 7px; margin-right: 8px; background: #aebbb7; border-radius: 50%; content: ""; }
+.connection-status.is-connected::before { background: #208368; }
+.connection-status.is-error::before { background: #bf6246; }
+.section { margin-top: 55px; }
+.section-heading { display: flex; justify-content: space-between; align-items: end; gap: 20px; margin-bottom: 18px; }
+h2 { margin-bottom: 0; font-size: clamp(24px, 3vw, 31px); letter-spacing: -.035em; }
+.section-note { max-width: 280px; margin-bottom: 2px; color: #6d7a7d; font-size: 13px; line-height: 1.4; text-align: right; }
+.live-actions { display: flex; align-items: center; gap: 14px; }
+.mode-badge, .small-badge { display: inline-flex; align-items: center; min-height: 25px; padding: 4px 9px; color: #327560; background: #e9f5ef; border-radius: 99px; font-size: 11px; font-weight: 750; white-space: nowrap; }
+.text-button { padding: 2px 0; color: #208368; background: transparent; border: 0; font-size: 12px; font-weight: 750; text-decoration: underline; }
+.live-layout { display: grid; grid-template-columns: minmax(0, 1.9fr) minmax(260px, .9fr); gap: 16px; }
+.staff-panel { min-width: 0; padding: 19px 21px 15px; }
+.staff-topline { display: flex; justify-content: space-between; color: #68777b; font-size: 12px; font-weight: 700; }
+.staff-wrap { min-height: 235px; display: grid; place-items: center; }
+.staff-svg { width: 100%; height: auto; max-height: 390px; overflow: visible; }
+.staff-line, .staff-ledger { stroke: #65747a; stroke-width: 1.3; }
+.staff-ledger { stroke-width: 1.5; }
+.staff-clef { fill: #25343a; font-family: "Apple Symbols", "Noto Music", "Segoe UI Symbol", serif; }
+.staff-clef-treble { font-size: 66px; }
+.staff-clef-bass { font-size: 48px; }
+.staff-accidental, .staff-note-accidental { fill: #25343a; font-family: "Apple Symbols", "Noto Music", "Segoe UI Symbol", serif; font-size: 25px; }
+.staff-note-accidental { font-size: 23px; }
+.staff-notehead { fill: #fff; stroke: #25343a; stroke-width: 2.2; }
+.staff-empty { fill: #9ba7a6; font-family: system-ui, sans-serif; font-size: 13px; }
+.note-list { display: flex; flex-wrap: wrap; gap: 7px; min-height: 30px; padding-top: 12px; border-top: 1px solid #edf0ed; }
+.note-chip { padding: 5px 9px; color: #295744; background: #eaf4ee; border-radius: 5px; font-size: 12px; font-weight: 750; }
+.note-chip.is-sustained { color: #735d2d; background: #fcf1d9; }
+.note-placeholder { color: #9ba7a6; font-size: 12px; }
+.chord-panel { display: flex; flex-direction: column; min-height: 302px; padding: 24px; }
+.panel-label { color: #68777b; font-size: 12px; font-weight: 750; }
+.chord-name { margin: 27px 0 12px; color: #202b32; font-size: clamp(45px, 5vw, 66px); font-weight: 750; letter-spacing: -.07em; line-height: 1; }
+.chord-detail { color: #68777b; font-size: 13px; line-height: 1.5; }
+.chord-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: auto; }
+.pedal-badge { color: #765b23; background: #fbefcf; }
+.triad-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.triad-card { display: block; width: 100%; padding: 16px; color: inherit; background: #fff; border: 1px solid #dfe4e0; border-radius: 10px; text-align: left; transition: border-color .15s, transform .15s; }
+.triad-card:hover { border-color: #69ad8d; transform: translateY(-2px); }
+.triad-card.is-previewing { border-color: #208368; box-shadow: 0 0 0 1px #208368; }
+.triad-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 5px; }
+.triad-degree { color: #208368; font-size: 12px; font-weight: 800; }
+.triad-name { font-size: 20px; font-weight: 750; letter-spacing: -.035em; }
+.triad-notes, .form-notes { color: #7d898a; font-size: 11px; }
+.triad-notes { margin-bottom: 15px; }
+.piano { position: relative; height: 82px; background: #fff; border: 1px solid #a9b4b3; border-radius: 3px; overflow: hidden; }
+.piano-whites { display: flex; height: 100%; }
+.piano-white { flex: 1; background: #fff; border-right: 1px solid #b9c3c2; }
+.piano-white:last-child { border-right: 0; }
+.piano-white.is-active { background: #b5e2c6; }
+.piano-black { position: absolute; top: 0; height: 59%; background: #26323a; border: 1px solid #1d262d; border-radius: 0 0 3px 3px; transform: translateX(-50%); z-index: 1; }
+.piano-black.is-active { background: #208368; border-color: #176d56; }
+.inversion-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.form-card { min-width: 0; padding: 18px; }
+.form-title { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 7px; font-size: 15px; font-weight: 750; }
+.form-title span:last-child { color: #208368; }
+.form-notes { min-height: 17px; margin-bottom: 15px; }
+.form-card .piano { height: 108px; }
+.piano-range { display: flex; justify-content: space-between; margin-top: 7px; color: #a0abab; font-size: 10px; }
+.site-footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 70px; padding: 24px 0 32px; color: #83908e; border-top: 1px solid #dfe4e0; font-size: 12px; }
+
+@media (max-width: 900px) {
+  .triad-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .live-layout { grid-template-columns: 1fr; }
+  .chord-panel { min-height: 235px; }
+  .chord-name { margin-top: 18px; }
+}
+
+@media (max-width: 650px) {
+  .page-shell { width: min(100% - 28px, 1180px); }
+  .site-header { padding: 18px 0; }
+  .intro { padding-top: 36px; }
+  .controls { align-items: stretch; }
+  .key-control, .input-control, .controls .button { width: 100%; }
+  .section { margin-top: 43px; }
+  .section-heading { align-items: start; flex-direction: column; gap: 8px; }
+  .section-note { text-align: left; }
+  .staff-panel { padding: 13px 10px 12px; }
+  .staff-wrap { min-height: 180px; }
+  .triad-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .triad-card { padding: 12px; }
+  .triad-name { font-size: 18px; }
+  .piano { height: 68px; }
+  .inversion-grid { grid-template-columns: 1fr; }
+  .form-card .piano { height: 110px; }
+  .site-footer { flex-direction: column; }
+}
+
+@media (max-width: 380px) {
+  .triad-grid { grid-template-columns: 1fr; }
+}

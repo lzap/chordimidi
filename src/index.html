@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f7f4">
+  <meta name="description" content="Live MIDI notes, staff notation, chord recognition, and diatonic piano triads.">
+  <title>Chordimidi · Live MIDI chord explorer</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./js/app.js"></script>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <a class="wordmark" href="./" aria-label="Chordimidi home">CHORDI<span>MIDI</span></a>
+      <span class="header-caption">Live chord explorer</span>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">MIDI → music theory</p>
+          <h1 id="page-title">See what you play.</h1>
+          <p class="intro-copy">Connect a MIDI keyboard to see every held or sustained note on a staff, recognize triads, and explore the chords in your key.</p>
+        </div>
+      </section>
+
+      <section class="controls panel" aria-label="MIDI and key settings">
+        <div class="control-group key-control">
+          <label for="key-select">Key</label>
+          <select id="key-select"></select>
+        </div>
+        <div class="control-group input-control">
+          <label for="midi-input-select">MIDI input</label>
+          <select id="midi-input-select" disabled><option>Connect to choose a device</option></select>
+        </div>
+        <button id="connect-button" class="button button-primary" type="button">Connect MIDI</button>
+        <div class="connection-status" id="midi-status" role="status">Ready to connect</div>
+      </section>
+
+      <section class="section live-section" aria-labelledby="live-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">01 / Live input</p>
+            <h2 id="live-heading">Notes on the staff</h2>
+          </div>
+          <div class="live-actions">
+            <span class="mode-badge" id="live-mode">Waiting for MIDI</span>
+            <button id="clear-preview" class="text-button" type="button" hidden>Clear preview</button>
+          </div>
+        </div>
+        <div class="live-layout">
+          <div class="panel staff-panel">
+            <div class="staff-topline">
+              <span id="staff-key-label">C major</span>
+              <span id="note-count">0 notes</span>
+            </div>
+            <div id="live-staff" class="staff-wrap"></div>
+            <div id="note-list" class="note-list" aria-live="polite"><span class="note-placeholder">No notes yet</span></div>
+          </div>
+          <div class="panel chord-panel" id="detected-panel" aria-live="polite">
+            <span class="panel-label">Detected chord</span>
+            <strong id="chord-name" class="chord-name">—</strong>
+            <p id="chord-detail" class="chord-detail">Play three different notes to identify a triad.</p>
+            <div class="chord-meta">
+              <span id="degree-badge" class="small-badge" hidden></span>
+              <span id="pedal-badge" class="small-badge pedal-badge" hidden>Sustain pedal on</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="key-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">02 / The key</p>
+            <h2 id="key-heading">Seven diatonic triads</h2>
+          </div>
+          <p class="section-note">Select a chord to preview its notes above.</p>
+        </div>
+        <div id="triad-grid" class="triad-grid"></div>
+      </section>
+
+      <section class="section" aria-labelledby="inversions-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">03 / Chord forms</p>
+            <h2 id="inversions-heading">Three positions</h2>
+          </div>
+          <p id="inversion-caption" class="section-note">Play a triad to see its inversions.</p>
+        </div>
+        <div id="inversion-grid" class="inversion-grid"></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>Chordimidi</span>
+      <span>MIDI input stays in your browser. No account or server needed.</span>
+    </footer>
+  </div>
+</body>
+</html>
