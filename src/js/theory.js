@@ -8,6 +8,10 @@ const NEXT_TRIADS = {
   major: [[3, 4, 5], [4, 0, 5], [5, 3, 1], [4, 0, 1], [0, 5, 3], [3, 1, 4], [0, 2, 4]],
   minor: [[3, 5, 6], [4, 0, 3], [5, 6, 3], [6, 0, 4], [0, 5, 3], [3, 6, 0], [2, 0, 5]],
 };
+const EXPLORE_PRIORITY = {
+  major: [0, 3, 4, 5, 1, 2, 6],
+  minor: [0, 3, 6, 5, 2, 4, 1],
+};
 const CHORD_DEGREES = {
   power: [0, 4], octave: [0, 0],
   suspended2: [0, 1, 4], suspended4: [0, 3, 4],
@@ -141,9 +145,9 @@ export function triadsForKey(key) {
 export function recommendationsForKey(key, chord) {
   const triads = triadsForKey(key);
   const currentIndex = chord?.inKey ? triads.findIndex((triad) => triad.rootPc === chord.rootPc) : -1;
-  const indexes = currentIndex < 0
-    ? (key.mode === 'minor' ? [0, 3, 6] : [0, 3, 4])
-    : NEXT_TRIADS[key.mode][currentIndex];
+  const priority = EXPLORE_PRIORITY[key.mode];
+  const indexes = currentIndex < 0 ? priority.slice(0, 4) : [...NEXT_TRIADS[key.mode][currentIndex]];
+  if (currentIndex >= 0) indexes.push(priority.find((index) => index !== currentIndex && !indexes.includes(index)));
   return { source: currentIndex < 0 ? null : chord.name, chords: indexes.map((index) => triads[index]) };
 }
 

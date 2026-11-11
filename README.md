@@ -9,7 +9,7 @@ A static Web MIDI page for seeing the notes you play, recognizing chords, and ex
 - Recognized chords spell their notes from the chord root, including double accidentals where needed; unmatched notes use the selected key. An enharmonic root is used if the key's spelling would require triple accidentals.
 - Exact recognition for perfect fifths (power chords), octave pairs, major, minor, diminished, augmented, sus2, and sus4 triads; major, dominant, minor, half-diminished, and diminished sevenths; and major and minor sixths. Octave doublings of chords are ignored; extra pitch classes do not trigger a partial chord match.
 - Seven diatonic triads shown on piano keyboards. Click one to preview it without a MIDI device.
-- An Explore section suggests three diatonic triads to try after the current chord, or starter chords when none is recognized. These are practice ideas, not a unique harmonic answer.
+- An Explore section suggests four diatonic triads to try after the current chord, or starter chords when none is recognized. These are practice ideas, not a unique harmonic answer.
 - Recognized three-note chords have three position keyboards; four-note chords have four.
 - A detected perfect fifth or octave shows three beginner left-hand shapes: root + fifth, root + octave, and root + fifth + octave.
 - MIDI input selection and device hot-plug handling.

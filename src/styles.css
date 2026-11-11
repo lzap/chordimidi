@@ -98,7 +98,7 @@ h2 { margin-bottom: 0; font-size: clamp(24px, 3vw, 31px); letter-spacing: -.035e
 .form-notes { min-height: 17px; margin-bottom: 10px; }
 .form-card .piano { height: 88px; }
 .piano-range { display: flex; justify-content: space-between; margin-top: 7px; color: #a0abab; font-size: 10px; }
-.explore-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.explore-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
 .site-footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 70px; padding: 24px 0 32px; color: #83908e; border-top: 1px solid #dfe4e0; font-size: 12px; }
 .site-footer a { color: inherit; }
 
@@ -129,6 +129,6 @@ h2 { margin-bottom: 0; font-size: clamp(24px, 3vw, 31px); letter-spacing: -.035e
   .inversion-grid { grid-template-columns: 1fr; }
   .inversion-grid.is-four { grid-template-columns: 1fr; }
   .form-card .piano { height: 88px; }
-  .explore-grid { grid-template-columns: repeat(3, 170px); overflow-x: auto; padding-bottom: 8px; }
+  .explore-grid { grid-template-columns: repeat(4, 170px); overflow-x: auto; padding-bottom: 8px; }
   .site-footer { flex-direction: column; }
 }

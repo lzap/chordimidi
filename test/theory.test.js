@@ -25,15 +25,23 @@ test('major and natural minor triads match their expected qualities', () => {
     ['Am', 'B°', 'C', 'Dm', 'Em', 'F', 'G']);
 });
 
-test('explore suggests three diatonic chords for the key and current chord', () => {
+test('explore suggests four distinct diatonic chords for the key and current chord', () => {
   const major = getKey('C-major');
-  assert.deepEqual(recommendationsForKey(major, null).chords.map((chord) => chord.name), ['C', 'F', 'G']);
+  assert.deepEqual(recommendationsForKey(major, null).chords.map((chord) => chord.name), ['C', 'F', 'G', 'Am']);
   const c = recognizeChord([60, 64, 67], major);
-  assert.deepEqual(recommendationsForKey(major, c).chords.map((chord) => chord.name), ['F', 'G', 'Am']);
+  assert.deepEqual(recommendationsForKey(major, c).chords.map((chord) => chord.name), ['F', 'G', 'Am', 'Dm']);
   const minor = getKey('A-minor');
-  assert.deepEqual(recommendationsForKey(minor, null).chords.map((chord) => chord.name), ['Am', 'Dm', 'G']);
-  assert.deepEqual(recommendationsForKey(minor, recognizeChord([57, 60, 64], minor)).chords.map((chord) => chord.name), ['Dm', 'F', 'G']);
-  assert.deepEqual(recommendationsForKey(major, recognizeChord([60, 64, 67, 70], major)).chords.map((chord) => chord.name), ['C', 'F', 'G']);
+  assert.deepEqual(recommendationsForKey(minor, null).chords.map((chord) => chord.name), ['Am', 'Dm', 'G', 'F']);
+  assert.deepEqual(recommendationsForKey(minor, recognizeChord([57, 60, 64], minor)).chords.map((chord) => chord.name), ['Dm', 'F', 'G', 'C']);
+  assert.deepEqual(recommendationsForKey(major, recognizeChord([60, 64, 67, 70], major)).chords.map((chord) => chord.name), ['C', 'F', 'G', 'Am']);
+  for (const key of KEYS) {
+    for (const chord of triadsForKey(key)) {
+      const suggestions = recommendationsForKey(key, { ...chord, inKey: true }).chords;
+      assert.equal(suggestions.length, 4);
+      assert.equal(new Set(suggestions.map((item) => item.name)).size, 4);
+      assert.ok(suggestions.every((item) => item.name !== chord.name));
+    }
+  }
 });
 
 test('recognition ignores octave doublings and names inversions', () => {
