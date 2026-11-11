@@ -4,6 +4,10 @@ const MAJOR_STEPS = [0, 2, 4, 5, 7, 9, 11];
 const MINOR_STEPS = [0, 2, 3, 5, 7, 8, 10];
 const SHARP_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const FLAT_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+const NEXT_TRIADS = {
+  major: [[3, 4, 5], [4, 0, 5], [5, 3, 1], [4, 0, 1], [0, 5, 3], [3, 1, 4], [0, 2, 4]],
+  minor: [[3, 5, 6], [4, 0, 3], [5, 6, 3], [6, 0, 4], [0, 5, 3], [3, 6, 0], [2, 0, 5]],
+};
 
 export const QUALITIES = {
   power: { intervals: [0, 7], suffix: '5', label: 'Perfect fifth' },
@@ -98,6 +102,15 @@ export function triadsForKey(key) {
       noteNames: [root.name, third.name, fifth.name],
     };
   });
+}
+
+export function recommendationsForKey(key, chord) {
+  const triads = triadsForKey(key);
+  const currentIndex = chord?.inKey ? triads.findIndex((triad) => triad.rootPc === chord.rootPc) : -1;
+  const indexes = currentIndex < 0
+    ? (key.mode === 'minor' ? [0, 3, 6] : [0, 3, 4])
+    : NEXT_TRIADS[key.mode][currentIndex];
+  return { source: currentIndex < 0 ? null : chord.name, chords: indexes.map((index) => triads[index]) };
 }
 
 export function nameForPitchClass(pc, key) {

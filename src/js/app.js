@@ -1,4 +1,4 @@
-import { KEYS, QUALITIES, getKey, recognizeChord, spellMidiNote, triadsForKey, voicingForChord } from './theory.js';
+import { KEYS, QUALITIES, getKey, recognizeChord, recommendationsForKey, spellMidiNote, triadsForKey, voicingForChord } from './theory.js';
 import { MidiNoteTracker } from './midi-state.js';
 import { staffSvg } from './staff.js';
 import { createPiano } from './piano.js';
@@ -22,6 +22,8 @@ const elements = {
   inversionGrid: document.querySelector('#inversion-grid'),
   inversionsHeading: document.querySelector('#inversions-heading'),
   inversionCaption: document.querySelector('#inversion-caption'),
+  exploreGrid: document.querySelector('#explore-grid'),
+  exploreCaption: document.querySelector('#explore-caption'),
 };
 
 const tracker = new MidiNoteTracker();
@@ -67,37 +69,46 @@ function appendPianoRange(card, start, end) {
   card.append(range);
 }
 
+function createTriadCard(triad) {
+  const notes = voicingForChord(triad);
+  const card = document.createElement('button');
+  card.type = 'button';
+  card.className = `triad-card${preview?.name === triad.name ? ' is-previewing' : ''}`;
+  card.setAttribute('aria-label', `Preview ${triad.name}, ${triad.noteNames.join(', ')}`);
+
+  const heading = document.createElement('div');
+  heading.className = 'triad-heading';
+  const degree = document.createElement('span');
+  degree.className = 'triad-degree';
+  degree.textContent = triad.degree;
+  const name = document.createElement('strong');
+  name.className = 'triad-name';
+  name.textContent = triad.name;
+  heading.append(degree, name);
+
+  const noteLine = document.createElement('div');
+  noteLine.className = 'triad-notes';
+  noteLine.textContent = triad.noteNames.map((note) => note.replace('b', '♭').replace('#', '♯')).join(' · ');
+  card.append(heading, noteLine, createPiano(60, 83, notes, `${triad.name} piano keys`));
+  appendPianoRange(card, 60, 83);
+  card.addEventListener('click', () => {
+    preview = { name: triad.name, notes };
+    renderTriads();
+    renderLive();
+  });
+  return card;
+}
+
 function renderTriads() {
-  elements.triadGrid.replaceChildren();
-  for (const triad of triadsForKey(key)) {
-    const notes = voicingForChord(triad);
-    const card = document.createElement('button');
-    card.type = 'button';
-    card.className = `triad-card${preview?.name === triad.name ? ' is-previewing' : ''}`;
-    card.setAttribute('aria-label', `Preview ${triad.name}, ${triad.noteNames.join(', ')}`);
+  elements.triadGrid.replaceChildren(...triadsForKey(key).map(createTriadCard));
+}
 
-    const heading = document.createElement('div');
-    heading.className = 'triad-heading';
-    const degree = document.createElement('span');
-    degree.className = 'triad-degree';
-    degree.textContent = triad.degree;
-    const name = document.createElement('strong');
-    name.className = 'triad-name';
-    name.textContent = triad.name;
-    heading.append(degree, name);
-
-    const noteLine = document.createElement('div');
-    noteLine.className = 'triad-notes';
-    noteLine.textContent = triad.noteNames.map((note) => note.replace('b', '♭').replace('#', '♯')).join(' · ');
-    card.append(heading, noteLine, createPiano(60, 83, notes, `${triad.name} piano keys`));
-    appendPianoRange(card, 60, 83);
-    card.addEventListener('click', () => {
-      preview = { name: triad.name, notes };
-      renderTriads();
-      renderLive();
-    });
-    elements.triadGrid.append(card);
-  }
+function renderExplore(chord) {
+  const { source, chords } = recommendationsForKey(key, chord);
+  elements.exploreCaption.textContent = source
+    ? `Diatonic chords to try after ${source}.`
+    : `Start with these chords in ${key.label}.`;
+  elements.exploreGrid.replaceChildren(...chords.map(createTriadCard));
 }
 
 function currentSnapshot() {
@@ -205,6 +216,7 @@ function renderLive() {
     elements.degreeBadge.hidden = true;
   }
   renderInversions(chord);
+  renderExplore(chord);
 }
 
 function selectInput(input) {

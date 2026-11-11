@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { KEYS, getKey, recognizeChord, scaleForKey, spellMidiNote, triadsForKey, voicingForChord } from '../src/js/theory.js';
+import { KEYS, getKey, recognizeChord, recommendationsForKey, scaleForKey, spellMidiNote, triadsForKey, voicingForChord } from '../src/js/theory.js';
 
 test('every supported key has seven spelled diatonic triads', () => {
   for (const key of KEYS) {
@@ -22,6 +22,17 @@ test('major and natural minor triads match their expected qualities', () => {
     ['C', 'Dm', 'Em', 'F', 'G', 'Am', 'B°']);
   assert.deepEqual(triadsForKey(getKey('A-minor')).map((chord) => chord.name),
     ['Am', 'B°', 'C', 'Dm', 'Em', 'F', 'G']);
+});
+
+test('explore suggests three diatonic chords for the key and current chord', () => {
+  const major = getKey('C-major');
+  assert.deepEqual(recommendationsForKey(major, null).chords.map((chord) => chord.name), ['C', 'F', 'G']);
+  const c = recognizeChord([60, 64, 67], major);
+  assert.deepEqual(recommendationsForKey(major, c).chords.map((chord) => chord.name), ['F', 'G', 'Am']);
+  const minor = getKey('A-minor');
+  assert.deepEqual(recommendationsForKey(minor, null).chords.map((chord) => chord.name), ['Am', 'Dm', 'G']);
+  assert.deepEqual(recommendationsForKey(minor, recognizeChord([57, 60, 64], minor)).chords.map((chord) => chord.name), ['Dm', 'F', 'G']);
+  assert.deepEqual(recommendationsForKey(major, recognizeChord([60, 64, 67, 70], major)).chords.map((chord) => chord.name), ['C', 'F', 'G']);
 });
 
 test('recognition ignores octave doublings and names inversions', () => {
