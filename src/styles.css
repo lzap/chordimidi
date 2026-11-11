@@ -19,8 +19,7 @@ button { cursor: pointer; }
 .header-caption { color: #66757b; font-size: 13px; }
 .intro { padding: 53px 0 32px; }
 .eyebrow { margin: 0 0 10px; color: #208368; font-size: 11px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
-h1, h2, p { margin-top: 0; }
-h1 { margin-bottom: 12px; font-size: clamp(35px, 5vw, 58px); letter-spacing: -.055em; line-height: 1.06; }
+h2, p { margin-top: 0; }
 .intro-copy { max-width: 680px; margin-bottom: 0; color: #5d6a70; font-size: 16px; line-height: 1.55; }
 .panel { background: #fff; border: 1px solid #dfe4e0; border-radius: 12px; box-shadow: 0 2px 8px #24322c08; }
 .controls { display: flex; align-items: end; flex-wrap: wrap; gap: 16px; padding: 18px; }
