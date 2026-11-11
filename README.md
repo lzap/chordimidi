@@ -1,4 +1,4 @@
-# ChordiMIDI
+# [ChordiMIDI](https://lukas.zapletalovi.com/chordimidi)
 
 A static Web MIDI page for seeing the notes you play, recognizing chords, and exploring the seven diatonic triads of a selected key.
 
