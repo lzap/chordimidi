@@ -30,7 +30,7 @@ npm test
 npm run build
 ```
 
-The build copies the static site into `dist/`. Relative paths let the result work under the GitHub Pages project path, `/chordimidi/`.
+The build writes the static site to `dist/` and places CSS and JavaScript in a content-versioned asset directory. This prevents browsers from reusing old assets after a deployment. Relative paths let the result work under the GitHub Pages project path, `/chordimidi/`.
 
 ## Publish
 
