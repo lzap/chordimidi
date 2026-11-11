@@ -103,7 +103,10 @@ h2 { margin-bottom: 0; font-size: clamp(24px, 3vw, 31px); letter-spacing: -.035e
 .explore-switch { display: inline-flex; align-items: center; gap: 7px; color: #526169; font-size: 12px; font-weight: 700; cursor: pointer; }
 .explore-switch input { margin: 0; accent-color: #208368; }
 .site-footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 70px; padding: 24px 0 32px; color: #83908e; border-top: 1px solid #dfe4e0; font-size: 12px; }
+.footer-links { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; }
 .site-footer a { color: inherit; }
+.sponsor-link { display: inline-flex; align-items: center; gap: 6px; }
+.sponsor-heart { color: #cd6265; font-size: 15px; line-height: 1; }
 
 @media (max-width: 1050px) {
   .triad-grid { grid-template-columns: repeat(7, 170px); overflow-x: auto; padding-bottom: 8px; }
