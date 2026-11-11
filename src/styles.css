@@ -92,6 +92,7 @@ h2 { margin-bottom: 0; font-size: clamp(24px, 3vw, 31px); letter-spacing: -.035e
 .form-card .piano { height: 108px; }
 .piano-range { display: flex; justify-content: space-between; margin-top: 7px; color: #a0abab; font-size: 10px; }
 .site-footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 70px; padding: 24px 0 32px; color: #83908e; border-top: 1px solid #dfe4e0; font-size: 12px; }
+.site-footer a { color: inherit; }
 
 @media (max-width: 1050px) {
   .triad-grid { grid-template-columns: repeat(7, 170px); overflow-x: auto; padding-bottom: 8px; }
