@@ -1,6 +1,6 @@
-import { KEYS, QUALITIES, getKey, recognizeChord, recommendationsForKey, spellMidiNote, triadsForKey, voicingForChord } from './theory.js';
+import { KEYS, QUALITIES, getKey, recommendationsForKey, spellMidiNote, triadsForKey, voicingForChord } from './theory.js';
 import { MidiNoteTracker } from './midi-state.js';
-import { chordInputNotes, guessKeys, noteOnMidi } from './analysis.js';
+import { chordInputNotes, guessKeys, noteOnMidi, recognizeChordWithMelody } from './analysis.js';
 import { staffSvg } from './staff.js';
 import { createPiano } from './piano.js';
 
@@ -250,7 +250,7 @@ function renderLive() {
   const { notes, pedal } = currentSnapshot();
   const midiNotes = notes.map((note) => note.midi);
   const chordMidiNotes = chordInputNotes(notes, splitNote, Boolean(preview)).map((note) => note.midi);
-  const chord = recognizeChord(chordMidiNotes, key);
+  const chord = recognizeChordWithMelody(chordMidiNotes, key);
   const distinctPitches = new Set(chordMidiNotes.map((note) => note % 12)).size;
 
   elements.liveMode.textContent = preview ? `Preview: ${preview.name}`
@@ -264,7 +264,7 @@ function renderLive() {
 
   if (chord) {
     elements.chordName.textContent = chord.displayName;
-    elements.chordDetail.textContent = `${QUALITIES[chord.quality].label}${chord.bassPc !== chord.rootPc ? ' in inversion' : ''}${chord.pattern ? ` · ${chord.pattern}` : ''}${chord.inKey ? ' · in this key' : ' · outside this key'}.`;
+    elements.chordDetail.textContent = `${QUALITIES[chord.quality].label}${chord.bassPc !== chord.rootPc ? ' in inversion' : ''}${chord.pattern ? ` · ${chord.pattern}` : ''}${chord.inKey ? ' · in this key' : ' · outside this key'}${chord.ignoredUpperNotes ? ` · inferred from lower notes; ${chord.ignoredUpperNotes} higher ${chord.ignoredUpperNotes === 1 ? 'note' : 'notes'} ignored` : ''}.`;
     elements.degreeBadge.textContent = chord.inKey ? `${chord.degree ? `${chord.degree} · ` : ''}in key` : 'Outside key';
     elements.degreeBadge.hidden = false;
   } else {
@@ -278,7 +278,7 @@ function renderLive() {
         : distinctPitches === 2
           ? 'Try a perfect fifth or add a note to make a chord.'
         : distinctPitches > 4
-          ? 'More than four pitches are sounding. Try releasing a note or the sustain pedal.'
+          ? 'No clear chord in the lower notes. Try Learn split or release the sustain pedal.'
           : 'These notes do not match a supported chord.';
     elements.degreeBadge.hidden = true;
   }

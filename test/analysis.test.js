@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { chordInputNotes, guessKeys, noteOnMidi } from '../src/js/analysis.js';
+import { chordInputNotes, guessKeys, noteOnMidi, recognizeChordWithMelody } from '../src/js/analysis.js';
+import { getKey } from '../src/js/theory.js';
 
 test('split learning captures note-on with positive velocity only', () => {
   assert.equal(noteOnMidi([0x90, 60, 100]), 60);
@@ -20,6 +21,28 @@ test('split excludes its boundary from chord input, including sustained notes', 
   assert.deepEqual(chordInputNotes(notes, 60).map((note) => note.midi), [48, 55]);
   assert.equal(chordInputNotes(notes, null), notes);
   assert.equal(chordInputNotes(notes, 60, true), notes);
+});
+
+test('a lower chord survives extra sounding melody notes', () => {
+  const key = getKey('C-major');
+  const triad = recognizeChordWithMelody([48, 52, 55, 72, 74, 76], key);
+  assert.equal(triad.displayName, 'C');
+  assert.equal(triad.ignoredUpperNotes, 3);
+  const fifth = recognizeChordWithMelody([48, 55, 72, 74, 76], key);
+  assert.equal(fifth.displayName, 'C5');
+  assert.equal(fifth.ignoredUpperNotes, 3);
+  const doubled = recognizeChordWithMelody([48, 52, 55, 60, 62, 64], key);
+  assert.equal(doubled.displayName, 'C');
+  assert.equal(doubled.ignoredUpperNotes, 2);
+});
+
+test('exact matches win and fallback does not skip interfering low notes', () => {
+  const key = getKey('C-major');
+  const exact = recognizeChordWithMelody([48, 52, 55, 58], key);
+  assert.equal(exact.displayName, 'C7');
+  assert.equal(exact.ignoredUpperNotes, undefined);
+  assert.equal(recognizeChordWithMelody([48, 50, 52, 55, 72], key), null);
+  assert.equal(recognizeChordWithMelody([48, 72, 76, 79, 86], key), null);
 });
 
 test('key guesses wait for a phrase and distinguish tonic emphasis in relative keys', () => {

@@ -1,4 +1,4 @@
-import { KEYS, pitchClass } from './theory.js';
+import { KEYS, pitchClass, recognizeChord } from './theory.js';
 
 // A small pitch-class profile: tonic and fifth are useful clues, while notes
 // outside the scale lower a candidate's score. Relative keys remain possible.
@@ -14,6 +14,21 @@ export function noteOnMidi(data) {
 
 export function chordInputNotes(notes, splitNote, isPreview = false) {
   return isPreview || splitNote === null ? notes : notes.filter((note) => note.midi < splitNote);
+}
+
+export function recognizeChordWithMelody(midiNotes, key) {
+  const exact = recognizeChord(midiNotes, key);
+  if (exact) return exact;
+
+  const notes = [...new Set(midiNotes)].sort((a, b) => a - b);
+  // A left-hand shape normally sits at the bottom. Try contiguous low notes,
+  // within an octave plus a fifth, without cherry-picking arbitrary subsets.
+  for (let count = notes.length - 1; count >= 2; count -= 1) {
+    if (notes[count - 1] - notes[0] > 19) continue;
+    const chord = recognizeChord(notes.slice(0, count), key);
+    if (chord) return { ...chord, ignoredUpperNotes: notes.length - count };
+  }
+  return null;
 }
 
 export function guessKeys(midiNotes) {
