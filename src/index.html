@@ -27,12 +27,20 @@
           <label for="key-select">Key</label>
           <select id="key-select"></select>
         </div>
+        <div class="control-group split-control">
+          <span class="control-label">Split</span>
+          <button id="split-button" class="button button-secondary" type="button" aria-pressed="false">Learn split</button>
+        </div>
         <div class="control-group input-control">
           <label for="midi-input-select">MIDI input</label>
           <select id="midi-input-select" disabled><option>Connect to choose a device</option></select>
         </div>
         <button id="connect-button" class="button button-primary" type="button">Connect MIDI</button>
-        <div class="connection-status" id="midi-status" role="status">Ready to connect</div>
+        <div class="status-row">
+          <div class="connection-status" id="midi-status" role="status">Ready to connect</div>
+          <span class="analysis-status" id="split-status" role="status">Split off</span>
+          <button id="clear-split" class="text-button" type="button" hidden>Clear split</button>
+        </div>
       </section>
 
       <section class="section live-section" aria-labelledby="live-heading">

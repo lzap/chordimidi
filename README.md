@@ -13,6 +13,7 @@ A static Web MIDI page for seeing the notes you play, recognizing chords, and ex
 - Recognized three-note chords have three position keyboards; four-note chords have four.
 - A detected perfect fifth or octave shows three beginner left-hand shapes: root + fifth, root + octave, and root + fifth + octave.
 - MIDI input selection and device hot-plug handling.
+- Learn a split key from the next MIDI note. Chord recognition then uses only notes below it, while the staff still shows everything. Clicked chord previews ignore the split.
 
 The site uses browser-native APIs and has no third-party packages or runtime services. MIDI data stays in the browser. It does not play audio or record note history.
 

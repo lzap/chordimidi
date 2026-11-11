@@ -23,8 +23,9 @@ h2, p { margin-top: 0; }
 .panel { background: #fff; border: 1px solid #dfe4e0; border-radius: 12px; box-shadow: 0 2px 8px #24322c08; }
 .controls { display: flex; align-items: end; flex-wrap: wrap; gap: 16px; margin-top: 24px; padding: 18px; }
 .control-group { display: flex; flex-direction: column; gap: 7px; }
-.control-group label { color: #526169; font-size: 12px; font-weight: 750; }
+.control-group label, .control-label { color: #526169; font-size: 12px; font-weight: 750; }
 .key-control { width: 190px; }
+.split-control { min-width: 112px; }
 .input-control { flex: 1; min-width: 210px; }
 select { width: 100%; height: 42px; padding: 0 12px; color: #202b32; background: #fff; border: 1px solid #cbd5d0; border-radius: 7px; }
 select:disabled { color: #8d999a; background: #f3f5f3; }
@@ -32,8 +33,12 @@ select:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid
 .button { min-height: 42px; padding: 0 18px; border: 0; border-radius: 7px; font-weight: 750; }
 .button-primary { color: #fff; background: #208368; }
 .button-primary:hover:not(:disabled) { background: #176d56; }
+.button-secondary { color: #295744; background: #eaf4ee; border: 1px solid #bbd7c7; }
+.button-secondary:hover { background: #dceee3; }
+.button-secondary[aria-pressed="true"] { color: #fff; background: #208368; border-color: #208368; }
 .button:disabled { opacity: .7; cursor: default; }
-.connection-status { flex-basis: 100%; min-height: 16px; color: #65747a; font-size: 12px; }
+.status-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 18px; flex-basis: 100%; min-height: 16px; }
+.connection-status, .analysis-status { color: #65747a; font-size: 12px; }
 .connection-status::before { display: inline-block; width: 7px; height: 7px; margin-right: 8px; background: #aebbb7; border-radius: 50%; content: ""; }
 .connection-status.is-connected::before { background: #208368; }
 .connection-status.is-error::before { background: #bf6246; }
@@ -112,6 +117,7 @@ h2 { margin-bottom: 0; font-size: clamp(24px, 3vw, 31px); letter-spacing: -.035e
   .site-header { padding: 18px 0; }
   .controls { align-items: stretch; }
   .key-control, .input-control, .controls .button { width: 100%; }
+  .split-control { width: 100%; }
   .section { margin-top: 32px; }
   .section-heading { align-items: start; flex-direction: column; gap: 8px; }
   .section-note { text-align: left; }

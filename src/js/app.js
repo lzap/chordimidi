@@ -1,5 +1,6 @@
 import { KEYS, QUALITIES, getKey, recognizeChord, recommendationsForKey, spellMidiNote, triadsForKey, voicingForChord } from './theory.js';
 import { MidiNoteTracker } from './midi-state.js';
+import { chordInputNotes, noteOnMidi } from './analysis.js';
 import { staffSvg } from './staff.js';
 import { createPiano } from './piano.js';
 
@@ -8,6 +9,9 @@ const elements = {
   inputSelect: document.querySelector('#midi-input-select'),
   connectButton: document.querySelector('#connect-button'),
   midiStatus: document.querySelector('#midi-status'),
+  splitButton: document.querySelector('#split-button'),
+  splitStatus: document.querySelector('#split-status'),
+  clearSplit: document.querySelector('#clear-split'),
   liveMode: document.querySelector('#live-mode'),
   clearPreview: document.querySelector('#clear-preview'),
   staffKeyLabel: document.querySelector('#staff-key-label'),
@@ -31,6 +35,8 @@ let access = null;
 let selectedInput = null;
 let preview = null;
 let key = getKey(readSavedKey());
+let splitNote = readSavedSplit();
+let splitArmed = false;
 
 function readSavedKey() {
   try { return localStorage.getItem('chordimidi-key'); }
@@ -40,6 +46,37 @@ function readSavedKey() {
 function saveKey(id) {
   try { localStorage.setItem('chordimidi-key', id); }
   catch { /* Browsers may block storage. */ }
+}
+
+function readSavedSplit() {
+  try {
+    const saved = localStorage.getItem('chordimidi-split');
+    if (saved === null) return null;
+    const note = Number(saved);
+    return Number.isInteger(note) && note >= 0 && note <= 127 ? note : null;
+  } catch { return null; }
+}
+
+function saveSplit() {
+  try {
+    if (splitNote === null) localStorage.removeItem('chordimidi-split');
+    else localStorage.setItem('chordimidi-split', String(splitNote));
+  } catch { /* Browsers may block storage. */ }
+}
+
+function renderSplitStatus() {
+  elements.splitButton.setAttribute('aria-pressed', String(splitArmed));
+  elements.splitButton.textContent = splitArmed ? 'Cancel learning' : 'Learn split';
+  const boundary = splitNote === null ? '' : spellMidiNote(splitNote, key).label;
+  if (splitArmed) {
+    elements.splitStatus.textContent = selectedInput
+      ? `Play a key to set split${boundary ? ` · currently below ${boundary}` : ''}`
+      : 'Connect MIDI, then play a key to set split';
+  } else {
+    elements.splitStatus.textContent = boundary
+      ? `Chords use notes below ${boundary}` : 'Split off · all notes count toward chords';
+  }
+  elements.clearSplit.hidden = splitNote === null;
 }
 
 function setStatus(message, kind = '') {
@@ -185,8 +222,9 @@ function renderInversions(chord) {
 function renderLive() {
   const { notes, pedal } = currentSnapshot();
   const midiNotes = notes.map((note) => note.midi);
-  const chord = recognizeChord(midiNotes, key);
-  const distinctPitches = new Set(midiNotes.map((note) => note % 12)).size;
+  const chordMidiNotes = chordInputNotes(notes, splitNote, Boolean(preview)).map((note) => note.midi);
+  const chord = recognizeChord(chordMidiNotes, key);
+  const distinctPitches = new Set(chordMidiNotes.map((note) => note % 12)).size;
 
   elements.liveMode.textContent = preview ? `Preview: ${preview.name}`
     : selectedInput ? 'Live MIDI' : 'Waiting for MIDI';
@@ -204,8 +242,10 @@ function renderLive() {
     elements.degreeBadge.hidden = false;
   } else {
     elements.chordName.textContent = '—';
-    elements.chordDetail.textContent = !notes.length
-      ? 'Play an octave, a perfect fifth, or a chord.'
+    elements.chordDetail.textContent = !chordMidiNotes.length
+      ? notes.length && splitNote !== null && !preview
+        ? 'Play notes below the split key to identify a chord.'
+        : 'Play an octave, a perfect fifth, or a chord.'
       : distinctPitches === 1
         ? 'Add a note one octave away to make an octave pair.'
         : distinctPitches === 2
@@ -229,6 +269,13 @@ function selectInput(input) {
   if (selectedInput) {
     selectedInput.onmidimessage = (event) => {
       preview = null;
+      const played = noteOnMidi(event.data);
+      if (splitArmed && played !== null) {
+        splitNote = played;
+        splitArmed = false;
+        saveSplit();
+        renderSplitStatus();
+      }
       if (tracker.receive(selectedInput.id, event.data)) {
         renderLive();
         renderTriads();
@@ -238,6 +285,7 @@ function selectInput(input) {
   } else {
     setStatus(access ? 'No MIDI input found. Connect a device to continue.' : 'Ready to connect');
   }
+  renderSplitStatus();
   renderLive();
   renderTriads();
 }
@@ -264,6 +312,7 @@ function refreshInputs() {
   if (next?.id !== previousId) selectInput(next);
   else if (next) setStatus(`Listening to ${next.name || 'MIDI input'}`, 'connected');
   else setStatus('No MIDI input found. Connect a device to continue.');
+  renderSplitStatus();
 }
 
 async function connectMidi() {
@@ -290,6 +339,7 @@ elements.keySelect.addEventListener('change', () => {
   key = getKey(elements.keySelect.value);
   saveKey(key.id);
   preview = null;
+  renderSplitStatus();
   renderTriads();
   renderLive();
 });
@@ -297,6 +347,17 @@ elements.inputSelect.addEventListener('change', () => {
   selectInput(access.inputs.get(elements.inputSelect.value) || null);
 });
 elements.connectButton.addEventListener('click', connectMidi);
+elements.splitButton.addEventListener('click', () => {
+  splitArmed = !splitArmed;
+  renderSplitStatus();
+});
+elements.clearSplit.addEventListener('click', () => {
+  splitNote = null;
+  splitArmed = false;
+  saveSplit();
+  renderSplitStatus();
+  renderLive();
+});
 elements.clearPreview.addEventListener('click', () => {
   preview = null;
   renderTriads();
@@ -304,6 +365,7 @@ elements.clearPreview.addEventListener('click', () => {
 });
 
 renderKeyOptions();
+renderSplitStatus();
 renderTriads();
 renderLive();
 if (!navigator.requestMIDIAccess) {
