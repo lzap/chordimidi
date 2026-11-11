@@ -40,3 +40,7 @@ The build writes the static site to `dist/` and places CSS and JavaScript in a c
 The workflow in `.github/workflows/pages.yml` tests, builds, and deploys `dist/` when `main` is pushed. In the GitHub repository, set **Settings → Pages → Build and deployment → Source** to **GitHub Actions**. No `gh-pages` branch is needed.
 
 The live URL is `https://lukas.zapletalovi.com/chordimidi/`. This account's GitHub Pages custom domain is inherited by project sites. GitHub currently links to the HTTP version, so the page immediately upgrades that address to HTTPS for Web MIDI access.
+
+## License
+
+Copyright (C) 2026 Lukas Zapletal. ChordiMIDI is licensed under the GNU General Public License, version 3 or (at your option) any later version. See [LICENSE](LICENSE).

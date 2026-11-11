@@ -2,6 +2,7 @@
   "name": "chordimidi",
   "version": "1.0.0",
   "private": true,
+  "license": "GPL-3.0-or-later",
   "type": "module",
   "scripts": {
     "dev": "node scripts/serve.mjs",
