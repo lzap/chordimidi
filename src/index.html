@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7f7f4">
   <meta name="description" content="Live MIDI notes, staff notation, chord recognition, and diatonic piano triads.">
+  <script>
+    if (location.protocol === 'http:' && location.hostname === 'lukas.zapletalovi.com') {
+      location.replace(`https://${location.host}${location.pathname}${location.search}${location.hash}`);
+    }
+  </script>
   <title>Chordimidi · Live MIDI chord explorer</title>
   <link rel="stylesheet" href="./styles.css">
   <script type="module" src="./js/app.js"></script>
